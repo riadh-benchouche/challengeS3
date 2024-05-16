@@ -23,7 +23,6 @@ jobs:
       - name: Build Docker images
         working-directory: backend
         uses: docker/bake-action@v4
-        run: docker compose build
         with:
           pull: true
           load: true
