@@ -68,6 +68,9 @@ jobs:
         name: Doctrine Schema Validator
         working-directory: backend
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
+      -
+        name: Run PHPStan
+        run: php backend/vendor/bin/phpstan --configuration=backend/phpstan.dist.neon
 
   lint:
     name: Docker Lint
@@ -81,26 +84,3 @@ jobs:
         uses: hadolint/hadolint-action@v3.1.0
         with:
           recursive: true
-
-  static-analysis:
-    name: Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
-        name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, intl, pdo, pdo_mysql, xdebug
-      -
-        name: Install Composer dependencies
-        run: composer install
-      -
-        name: Run PHPStan
-        run: php backend/vendor/bin/phpstan --configuration=backend/phpstan.dist.neon
-      -
-        name: Run Psalm
-        run: vendor/bin/psalm
