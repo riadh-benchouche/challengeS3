@@ -1,0 +1,122 @@
+name: Backend test workflow
+
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - backend/api/*
+      - .github/workflows/*
+
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            backend/api/
+          sparse-checkout-cone-mode: false
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl
+      - name: Get composer cache directory
+        id: composer-cache-2
+        run: ls -la
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer --working-dir=backend/api/ config cache-files-dir)" >> $GITHUB_OUTPUT
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+      - name: Install dependencies
+        run: |
+          composer --working-dir=backend/api/ install \
+            --audit \
+            --classmap-authoritative \
+            --no-interaction \
+            --optimize-autoloader \
+            --prefer-dist
+      - name: Cache files
+        uses: actions/cache/save@v4
+        with:
+          path: backend/api/
+          key: project-files-${{ github.run_id }}
+
+  static-analysis:
+    needs: [ install ]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl
+      - name: Install PHPStan
+        run: composer require --dev phpstan/phpstan
+      - name: Restore cached files
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/api/
+          key: project-files-${{ github.run_id }}
+      - name: static analysis
+        run: php backend/api/vendor/bin/phpstan --configuration=backend/api/phpstan.neon
+
+  unit-tests:
+    needs: [ install ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl
+      - name: Restore cached files
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/api/
+          key: project-files-${{ github.run_id }}
+      - name: Run unit tests
+        run: php backend/api/bin/phpunit --configuration backend/api/phpunit.xml.dist backend/api/tests/Unit
+
+  integration-tests:
+    needs: [ install ]
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: mysql://root:testrootpass@127.0.0.1:3306/testdb?serverVersion=8.0.37&charset=utf8mb4
+    services:
+      database:
+        image: mysql:8.0.37
+        env:
+          MYSQL_DATABASE: testdb
+          MYSQL_ROOT_PASSWORD: testrootpass
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3306:3306
+    steps:
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo, pdo_mysql
+      - name: Restore cached files
+        uses: actions/cache/restore@v4
+        with:
+          path: backend/api/
+          key: project-files-${{ github.run_id }}
+      - name: Setup database schema
+        run: php backend/api/bin/console d:m:m --no-interaction
+      - name: Setup database fixtures
+        run: php backend/api/bin/console d:f:l --no-interaction
+      - name: Integration tests
+        run: php backend/api/bin/phpunit --configuration backend/api/phpunit.xml.dist backend/api/tests/Integration
