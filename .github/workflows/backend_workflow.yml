@@ -70,7 +70,7 @@ jobs:
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
       -
         name: Run PHPStan
-        run: docker compose exec -T php backend/vendor/bin/phpstan --configuration=backend/phpstan.dist.neon
+        run: php backend/vendor/bin/phpstan --configuration=backend/phpstan.dist.neon
 
   lint:
     name: Docker Lint
