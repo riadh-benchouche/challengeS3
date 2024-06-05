@@ -38,10 +38,17 @@ jobs:
       - name: Start services
         working-directory: backend
         run: docker compose up -d --wait --no-build
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for services to be ready..."
+          while ! curl -s http://localhost:80 > /dev/null; do
+            echo "Waiting for the service to start..."
+            sleep 5
+          done
 
   tests:
     needs: [install]
-    name: Tests
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
