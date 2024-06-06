@@ -1,5 +1,5 @@
-import Input from "../../components/Input.tsx";
-import Button from "../../components/Button.tsx";
+import Input from "@/components/Input.tsx";
+import Button from "@/components/Button.tsx";
 import {useState} from "react";
 
 export default function Register() {

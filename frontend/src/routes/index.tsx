@@ -1,34 +1,24 @@
-import {Fragment} from "react/jsx-runtime";
 import {RouteObject} from "react-router-dom";
-import Login from "../pages/auth/Login.tsx";
-import Layout from "../components/layout";
-import Register from "../pages/auth/Register.tsx";
-import NotFound from "../pages/maintenances/NotFound.tsx";
-import Forbidden from "../pages/maintenances/Forbidden.tsx";
-import ErrorPage from "../pages/maintenances/ErrorPage.tsx";
+import Login from "@/pages/auth/Login.tsx";
+import Register from "@/pages/auth/Register.tsx";
+import NotFound from "@/pages/maintenances/NotFound.tsx";
+import Forbidden from "@/pages/maintenances/Forbidden.tsx";
+import ErrorPage from "@/pages/maintenances/ErrorPage.tsx";
+import adminRoutes from "@/routes/adminRoutes.tsx";
+import guestRoutes from "@/routes/guestRoutes.tsx";
+import clientRoutes from "@/routes/clientRoutes.tsx";
+import organizationRoutes from "@/routes/organizationRoutes.tsx";
+import {getLayout} from "@/routes/getLayout.tsx";
 
-
-const getLayout = (
-    element: JSX.Element,
-    adminSecurity = false,
-    clientSecurity = false,
-    isAuth = false
-): JSX.Element => (
-    <Layout adminSecurity={adminSecurity} isAuth={isAuth} clientSecurity={clientSecurity}>
-        <Fragment>
-            {element}
-        </Fragment>
-    </Layout>
-)
 
 const authRoutes: RouteObject[] = [
     {
         path: "/login",
-        element: getLayout(<Login/>, false, true)
+        element: getLayout(<Login/>, false, false, false, true)
     },
     {
         path: "/register",
-        element: getLayout(<Register/>, false, true)
+        element: getLayout(<Register/>, false, false, false, true)
     },
     {
         path: "/forgot-password",
@@ -44,33 +34,13 @@ const authRoutes: RouteObject[] = [
     }
 ]
 
-const adminRoutes: RouteObject[] = [
-    {
-        path: "/admin",
-        element: getLayout(<div>Admin</div>, true, false, false)
-    }
-]
-
-const clientRoutes: RouteObject[] = [
-    {
-        path: "/client",
-        element: getLayout(<div>Client</div>, false, true, false)
-    }
-]
-
-const guestRoutes: RouteObject[] = [
-    {
-        path: "/",
-        element: getLayout(<div>Home</div>)
-    }
-]
-
 
 export const routes: RouteObject[] = [
     ...authRoutes,
     ...adminRoutes,
     ...clientRoutes,
     ...guestRoutes,
+    ...organizationRoutes,
     {
         path: "/forbidden",
         element: <Forbidden/>
