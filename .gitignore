@@ -1,0 +1,27 @@
+backend/api/vendor
+backend/api/.env
+frontend/package-lock.json
+
+###> symfony/framework-bundle ###
+backend/api/.env.local
+backend/api/.env.local.php
+backend/api/.env.*.local
+backend/api/config/secrets/prod/prod.decrypt.private.php
+backend/api/public/bundles/
+backend/api/var/
+backend/api/vendor/
+###< symfony/framework-bundle ###
+
+###> friendsofphp/php-cs-fixer ###
+backend/api/.php-cs-fixer.php
+backend/api/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+###> symfony/phpunit-bridge ###
+backend/api.phpunit.result.cache
+backend/api/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> lexik/jwt-authentication-bundle ###
+backend/api/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###
