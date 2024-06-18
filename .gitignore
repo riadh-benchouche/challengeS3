@@ -1,4 +1,0 @@
-.idea
-backend/.env
-backend/helm/api-platform/charts/*
-!backend/helm/api-platform/charts/.gitignore
