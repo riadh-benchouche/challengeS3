@@ -7,7 +7,7 @@ export default function Login() {
     const [password, setPassword] = useState('')
     return (
         <>
-            <div className="mx-auto w-full max-w-sm lg:w-96">
+            <div className="mx-auto w-full max-w-sm lg:w-96 h-full">
                 <div>
                     <img
                         className="h-10 w-auto"
