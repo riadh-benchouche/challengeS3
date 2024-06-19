@@ -1,5 +1,5 @@
 import {useNavigate} from "react-router-dom";
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import GuestLayout from "@/components/layout/GuestLayout.tsx";
 import AdminLayout from "@/components/layout/AdminLayout.tsx";
 import ClientLayout from "@/components/layout/ClientLayout.tsx";
@@ -13,9 +13,20 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
     isAuth: boolean
 }) => {
     const navigate = useNavigate();
-    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    const [roles, setRoles] = useState([]);
+    const [token, setToken] = useState(null);
 
     useEffect(() => {
+        const storedRoles = JSON.parse(localStorage.getItem("roles") || "[]");
+        const storedToken = localStorage.getItem("token")
+        setRoles(storedRoles);
+        setToken(storedToken);
+    }, []);
+
+    useEffect(() => {
+        if (!token) {
+            navigate("/login");
+        }
         if (adminSecurity && !Object.values(roles).includes("ROLE_ADMIN")) {
             navigate("/forbidden");
         } else if (organizationSecurity && !Object.values(roles).includes("ROLE_ORGANIZATION")) {
@@ -23,7 +34,7 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
         } else if (clientSecurity && !Object.values(roles).includes("ROLE_CLIENT")) {
             navigate("/forbidden");
         }
-    }, [adminSecurity, organizationSecurity, clientSecurity, navigate, roles]);
+    }, [adminSecurity, organizationSecurity, clientSecurity, navigate, roles, token]);
 
     if (isAuth) {
         return (
