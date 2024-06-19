@@ -1,6 +1,5 @@
 import {useNavigate} from "react-router-dom";
 import React, {useEffect} from "react";
-import GuestLayout from "@/components/layout/GuestLayout.tsx";
 import AdminLayout from "@/components/layout/AdminLayout.tsx";
 import ClientLayout from "@/components/layout/ClientLayout.tsx";
 import AuthLayout from "@/components/layout/AuthLayout.tsx";
@@ -41,14 +40,6 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
         );
     }
 
-    if (Object.values(roles).includes("ROLE_CLIENT")) {
-        return (
-            <ClientLayout>
-                {children}
-            </ClientLayout>
-        );
-    }
-
     if (Object.values(roles).includes("ROLE_ORGANIZATION")) {
         return (
             <AdminLayout role={Object.values(roles)?.[0] as string}>
@@ -58,9 +49,9 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
     }
 
     return (
-        <GuestLayout>
+        <ClientLayout>
             {children}
-        </GuestLayout>
+        </ClientLayout>
     );
 }
 

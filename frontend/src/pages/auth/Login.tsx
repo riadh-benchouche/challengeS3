@@ -15,7 +15,7 @@ export default function Login() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         axiosInstance.post('/login', {email, password}).then(r => {
-            const decoded = jwtDecode(r.data.token);
+            const decoded: any = jwtDecode(r.data.token);
             if (decoded?.roles) {
                 localStorage.setItem('roles', JSON.stringify(decoded?.roles))
             }

@@ -1,11 +1,28 @@
 import Input from "@/components/Input.tsx";
 import Button from "@/components/Button.tsx";
-import {useState} from "react";
+import React, {useState} from "react";
+import axiosInstance from "@/utils/axiosInstance.ts";
+import {useNavigate} from "react-router-dom";
+import {XCircleIcon} from "@heroicons/react/20/solid";
 
 export default function Register() {
+    const [error, setError] = useState('')
+    const navigate = useNavigate()
     const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
+    const [firstName, setFirstName] = useState('')
+    const [lastName, setLastName] = useState('')
+    const [plainPassword, setPassword] = useState('')
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        axiosInstance.post('/users', {firstName, lastName, email, plainPassword}).then(() => {
+            navigate('/login')
+        }).catch(e => {
+            console.error(e)
+            setError('Erreur lors de la création du compte')
+        })
+    }
+
     return (
         <div className="mx-auto w-full max-w-sm lg:w-96">
             <div>
@@ -25,9 +42,45 @@ export default function Register() {
                 </p>
             </div>
 
+            {error && (
+                <div className="mt-5">
+                    <div className="rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true"/>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Erreur</h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    {error}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="mt-10">
                 <div>
-                    <form action="#" method="POST" className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <Input label="Prénom"
+                                   type="text"
+                                   placeholder="John"
+                                   value={firstName}
+                                   onChange={(e) => setFirstName(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <Input label="Nom"
+                                   type="text"
+                                   placeholder="Doe"
+                                   value={lastName}
+                                   onChange={(e) => setLastName(e.target.value)}
+                            />
+                        </div>
+
                         <div>
                             <Input label="Email"
                                    type="email"
@@ -41,23 +94,13 @@ export default function Register() {
                             <Input label="Mot de passe"
                                    type="password"
                                    placeholder="********"
-                                   value={password}
+                                   value={plainPassword}
                                    onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
 
                         <div>
-                            <Input label="Confirmer le mot de passe"
-                                   type="password"
-                                   placeholder="********"
-                                   value={confirmPassword}
-                                   onChange={(e) => setConfirmPassword(e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <Button onClick={() => {
-                            }} className="w-full">
+                            <Button type="submit" className="w-full">
                                 S'inscrire
                             </Button>
                         </div>

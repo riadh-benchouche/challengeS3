@@ -1,7 +1,7 @@
 import {ChangeEvent} from "react";
 
 export default function Input({label, type, placeholder, value, onChange, className, required = true}: {
-    label: string,
+    label?: string,
     type: string,
     placeholder: string,
     value: string,
@@ -10,7 +10,7 @@ export default function Input({label, type, placeholder, value, onChange, classN
     required?: boolean
 }) {
     return (
-        <div>
+        <div className="w-full">
             <label htmlFor={label}
                    className="block text-sm font-medium leading-6 text-gray-900">
                 {label}

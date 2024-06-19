@@ -3,7 +3,7 @@ import {getLayout} from "@/routes/getLayout.tsx";
 
 const clientRoutes: RouteObject[] = [
     {
-        path: "/client",
+        path: "/bookings",
         element: getLayout(<div>Client</div>, false, true, false, false)
     }
 ]
