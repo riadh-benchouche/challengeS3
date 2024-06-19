@@ -1,13 +1,35 @@
 import Button from "@/components/Button.tsx";
 import Input from "@/components/Input.tsx";
-import {useState} from "react";
+import React, {useState} from "react";
+import axiosInstance from "@/utils/axiosInstance.ts";
+import {useNavigate} from "react-router-dom";
+import {XCircleIcon} from '@heroicons/react/20/solid'
+import {jwtDecode} from "jwt-decode";
 
 export default function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [error, setError] = useState('')
+    const navigate = useNavigate()
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        axiosInstance.post('/login', {email, password}).then(r => {
+            const decoded = jwtDecode(r.data.token);
+            if (decoded?.roles) {
+                localStorage.setItem('roles', JSON.stringify(decoded?.roles))
+            }
+            localStorage.setItem('token', 'Bearer ' + r.data.token)
+            navigate('/')
+        }).catch(e => {
+            console.error(e)
+            setError('Email ou mot de passe incorrect')
+        })
+    }
+
     return (
         <>
-            <div className="mx-auto w-full max-w-sm lg:w-96 h-full">
+            <div className="mx-auto w-full max-w-sm lg:w-96">
                 <div>
                     <img
                         className="h-10 w-auto"
@@ -24,10 +46,26 @@ export default function Login() {
                         </a>
                     </p>
                 </div>
-
-                <div className="mt-10">
+                {error && (
+                    <div className="mt-5">
+                        <div className="rounded-md bg-red-50 p-4">
+                            <div className="flex">
+                                <div className="flex-shrink-0">
+                                    <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true"/>
+                                </div>
+                                <div className="ml-3">
+                                    <h3 className="text-sm font-medium text-red-800">Erreur</h3>
+                                    <div className="mt-2 text-sm text-red-700">
+                                        {error}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+                <div className="mt-5">
                     <div>
-                        <form action="#" method="POST" className="space-y-6">
+                        <form className="space-y-6" onSubmit={handleSubmit}>
                             <div>
                                 <Input label="Email"
                                        type="email"
@@ -56,8 +94,7 @@ export default function Login() {
                             </div>
 
                             <div>
-                                <Button onClick={() => {
-                                }} className="w-full">
+                                <Button type="submit" className="w-full">
                                     Connexion
                                 </Button>
                             </div>

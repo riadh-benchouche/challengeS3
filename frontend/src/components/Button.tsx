@@ -1,6 +1,6 @@
 export default function Button({children, onClick, className, type = "button"}: {
     children: string,
-    onClick: () => void,
+    onClick?: () => void,
     className?: string,
     type?: "button" | "submit" | "reset"
 }) {
