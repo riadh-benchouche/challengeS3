@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,39 +10,109 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\GetCollection;
+use Symfony\Component\HttpFoundation\File\File;
+use App\State\UserPasswordHasher;
 
+
+#[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: [ 'groups' => ['company:read']],
+    operations: [
+        new Get(),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN')",
+        ),
+        new Post(
+            processor: UserPasswordHasher::class,
+            denormalizationContext: ['groups' => 'company:create'],
+            validationContext: ['groups' => 'company:create'],
+        ),
+        new Patch(
+            processor: UserPasswordHasher::class,
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+            ",
+            inputFormats: [ "json" ],
+            denormalizationContext: ['groups' => 'company:update'],
+        ),
+        new Delete(
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+            ",
+        )
+    ],
+)]
 class Company implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['company:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'company:create', 'company:update'])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $kbis = null;
+    #[Vich\UploadableField(mapping: 'kbis_file', fileNameProperty: 'kbis')]
+    #[Groups(['company:create'])]
+    private ?File $kbisFile = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read'])]
+    #[ApiProperty(
+        security: "
+            is_granted('ROLE_ADMIN') 
+            or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+        ",
+    )]    
+    private ?string $kbis = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?int $foundationDate = null;
+
+    #[ORM\Column(type: 'integer', nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?int $countries = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?string $raised = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'company:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'put:admin', 'company:update'])]
     private ?string $status = 'PENDING';
 
     private ?array $roles = ['ROLE_COMPANY'];
 
+    #[Groups(['company:create'])]
+    #[Assert\Length(min:4)]
     private ?string $plainPassword = null;
 
     /**
      * @var Collection<int, Establishment>
      */
     #[ORM\OneToMany(mappedBy: 'company', targetEntity: Establishment::class)]
+    #[Groups(['company:read'])]
     private Collection $establishments;
 
     public function __construct()
@@ -62,6 +133,18 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getKbisFile(): ?File
+    {
+        return $this->kbisFile;
+    }
+
+    public function setKbisFile(?File $kbisFile): static
+    {
+        $this->kbisFile = $kbisFile;
 
         return $this;
     }
@@ -192,4 +275,41 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getFoundationDate(): ?int
+    {
+        return $this->foundationDate;
+    }
+
+    public function setFoundationDate(int $foundationDate): static
+    {
+        $this->foundationDate = $foundationDate;
+
+        return $this;
+    }
+
+    public function getCountries(): ?int
+    {
+        return $this->countries;
+    }
+
+    public function setCountries(int $countries): static
+    {
+        $this->countries = $countries;
+
+        return $this;
+    }
+
+    public function getRaised(): ?string
+    {
+        return $this->raised;
+    }
+
+    public function setRaised(string $raised): static
+    {
+        $this->raised = $raised;
+
+        return $this;
+    }
+
 }

@@ -10,45 +10,96 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\State\UserPasswordHasher;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+
 
 #[ORM\Entity(repositoryClass: EmployeeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    normalizationContext: [ 'groups' => ['employee:read', 'appointment:read']],
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            processor: UserPasswordHasher::class,
+            securityPostDenormalize: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCOMPANY().getId() == user.getId()
+            ",
+            denormalizationContext: ['groups' => 'employee:create'],
+            validationContext: ['groups' => 'employee:create'],
+        ),
+        new Patch(
+            processor: UserPasswordHasher::class,
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_EMPLOYEE') and object.getId() == user.getId())
+            ",
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'employee:update']
+        ),
+        new Delete(
+            security: "is_granted('ROLE_ADMIN')"
+        )
+        ],
+    )]
+
 class Employee implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'appointment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['employee:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
+    #[Groups(['employee:create'])]
+    #[Assert\Length(min: 4)]
     private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $lastName = null;
 
+    #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
+    private ?string $category = null;
+
+    
     private array $roles = ['ROLE_EMPLOYEE'];
 
     #[ORM\ManyToOne(inversedBy: 'employees')]
+    #[Groups(['employee:read', 'admin:employee:read', 'employee:create'])]
     private ?Establishment $establishment = null;
 
     /**
      * @var Collection<int, Rating>
      */
     #[ORM\OneToMany(mappedBy: 'ratedEmployee', targetEntity: Rating::class)]
+    #[Groups(['employee:read'])]
     private Collection $ratings;
 
     /**
      * @var Collection<int, Service>
      */
     #[ORM\ManyToMany(targetEntity: Service::class, mappedBy: 'employees')]
+    #[Groups(['establishment:read', 'employee:read', 'admin:employee:read', 'company:read'])]
     private Collection $services;
 
     public function __construct()
