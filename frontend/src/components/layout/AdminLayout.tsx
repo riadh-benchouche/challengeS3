@@ -21,7 +21,7 @@ import {
 const AdminNavigation = [
     {name: 'Tableau de bord', href: '/admin/dashboard', icon: HomeIcon, current: true},
     {name: 'Entreprises', href: '/admin/companies', icon: FolderIcon, current: false},
-    {name: 'Administateur', href: '/admin/users', icon: UsersIcon, current: false},
+    {name: 'Administateur', href: '/admin/administrators', icon: UsersIcon, current: false},
 ]
 
 const OrganizationNavigation = [
