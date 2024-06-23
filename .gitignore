@@ -26,3 +26,4 @@ backend/api/phpunit.xml
 ###> lexik/jwt-authentication-bundle ###
 backend/api/config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###
+/backend/api/composer.lock
