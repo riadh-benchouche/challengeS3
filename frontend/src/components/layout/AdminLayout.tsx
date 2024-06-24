@@ -26,6 +26,7 @@ const AdminNavigation = [
 
 const OrganizationNavigation = [
     {name: 'Tableau de bord', href: '/organization/dashboard', icon: HomeIcon, current: true},
+    {name: 'Etablissement', href: '/organization/establishments', icon: FolderIcon, current: false},
     {name: 'Salarié', href: '/organization/employees', icon: UsersIcon, current: false},
     {name: 'Services', href: '/organization/services', icon: FolderIcon, current: false},
     {name: 'Calendrier', href: '/organization/calendar', icon: FolderIcon, current: false},
@@ -102,6 +103,7 @@ export default function AdminLayout({children, role}: { children: React.ReactNod
                                                             <li key={item.name}>
                                                                 <a
                                                                     href={item.href}
+                                                                    onClick={() => navigation.map((item) => item.current = true)}
                                                                     className={classNames(
                                                                         item.current
                                                                             ? 'bg-gray-50 text-primary-600'
