@@ -81,7 +81,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $category = null;
 
-    
     private array $roles = ['ROLE_EMPLOYEE'];
 
     #[ORM\ManyToOne(inversedBy: 'employees')]
@@ -95,17 +94,29 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['employee:read'])]
     private Collection $ratings;
 
-    /**
-     * @var Collection<int, Service>
-     */
-    #[ORM\ManyToMany(targetEntity: Service::class, mappedBy: 'employees')]
-    #[Groups(['establishment:read', 'employee:read', 'admin:employee:read', 'company:read'])]
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Service::class)]
+    #[Groups(['employee:read', 'establishment:read', 'admin:employee:read', 'company:read'])]
     private Collection $services;
+
+    /**
+     * @var Collection<int, WorkSchedule>
+     */
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: WorkSchedule::class)]
+    #[Groups(['employee:read', 'admin:employee:read', 'establishment:read'])]
+    private Collection $workSchedules;
+
+    /**
+     * @var Collection<int, LeaveDay>
+     */
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: LeaveDay::class)]
+    private Collection $leaveDays;
 
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
         $this->services = new ArrayCollection();
+        $this->workSchedules = new ArrayCollection();
+        $this->leaveDays = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -264,7 +275,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if (!$this->services->contains($service)) {
             $this->services->add($service);
-            $service->addEmployee($this);
+            $service->setEmployee($this);
         }
 
         return $this;
@@ -273,7 +284,70 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeService(Service $service): static
     {
         if ($this->services->removeElement($service)) {
-            $service->removeEmployee($this);
+            // set the owning side to null (unless already changed)
+            if ($service->getEmployee() === $this) {
+                $service->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, WorkSchedule>
+     */
+    public function getWorkSchedules(): Collection
+    {
+        return $this->workSchedules;
+    }
+
+    public function addWorkSchedule(WorkSchedule $workSchedule): static
+    {
+        if (!$this->workSchedules->contains($workSchedule)) {
+            $this->workSchedules->add($workSchedule);
+            $workSchedule->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeWorkSchedule(WorkSchedule $workSchedule): static
+    {
+        if ($this->workSchedules->removeElement($workSchedule)) {
+            // set the owning side to null (unless already changed)
+            if ($workSchedule->getEmployee() === $this) {
+                $workSchedule->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, LeaveDay>
+     */
+    public function getLeaveDays(): Collection
+    {
+        return $this->leaveDays;
+    }
+
+    public function addLeaveDay(LeaveDay $leaveDay): static
+    {
+        if (!$this->leaveDays->contains($leaveDay)) {
+            $this->leaveDays->add($leaveDay);
+            $leaveDay->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLeaveDay(LeaveDay $leaveDay): static
+    {
+        if ($this->leaveDays->removeElement($leaveDay)) {
+            // set the owning side to null (unless already changed)
+            if ($leaveDay->getEmployee() === $this) {
+                $leaveDay->setEmployee(null);
+            }
         }
 
         return $this;

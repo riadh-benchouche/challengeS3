@@ -67,12 +67,9 @@ class Service
     #[Groups(['employee:read', 'user:read', 'service:update', 'service:create', 'appointment:read'])]
     private ?int $price = null;
 
-    /**
-     * @var Collection<int, Employee>
-     */
-    #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'services')]
+    #[ORM\ManyToOne(inversedBy: 'services')]
     #[Groups(['establishment:read', 'employee:read', 'user:read', 'service:create', 'appointment:read'])]
-    private Collection $employees;
+    private ?Employee $employee = null;
 
     /**
      * @var Collection<int, Appointment>
@@ -83,7 +80,6 @@ class Service
 
     public function __construct()
     {
-        $this->employees = new ArrayCollection();
         $this->appointments = new ArrayCollection();
     }
 
@@ -140,19 +136,14 @@ class Service
         return $this;
     }
 
-    /**
-     * @return Collection<int, Employee>
-     */
-    public function getEmployees(): Collection
+    public function getEmployee(): ?Employee
     {
-        return $this->employees;
+        return $this->employee;
     }
 
-    public function addEmployee(Employee $employee): static
+    public function setEmployee(?Employee $employee): static
     {
-        if (!$this->employees->contains($employee)) {
-            $this->employees->add($employee);
-        }
+        $this->employee = $employee;
 
         return $this;
     }
