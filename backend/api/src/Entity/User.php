@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             ",
         ),
         new GetCollection(
-            security: "is_granted('ROLE_ADMIN')",
+            // security: "is_granted('ROLE_ADMIN')",
         ),
         new Post(
             processor: UserPasswordHasher::class,
@@ -44,6 +44,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Patch(
             processor: UserPasswordHasher::class,
             security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT') and object.getId() == user.getId())",
+            inputFormats: [ "json" ],
             denormalizationContext: ['groups' => 'user:update']
         ),
         new Delete(

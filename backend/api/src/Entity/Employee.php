@@ -49,7 +49,6 @@ use ApiPlatform\Metadata\Delete;
         )
         ],
     )]
-
 class Employee implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -109,6 +108,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, LeaveDay>
      */
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: LeaveDay::class)]
+    #[Groups(['employee:read', 'admin:employee:read', 'establishment:read'])]
     private Collection $leaveDays;
 
     public function __construct()

@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WorkScheduleRepository::class)]
 #[ApiResource(
@@ -69,7 +70,6 @@ class WorkSchedule
 
     #[ORM\ManyToOne(inversedBy: 'workSchedules')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['establishment:read', 'employee:read', 'employee-week-schedule:create'])]
     #[Groups(['work-schedule:create', 'establishment:read', 'employee:read' ])]
     private ?Employee $employee = null;
 

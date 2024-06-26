@@ -25,7 +25,7 @@ use App\State\UserPasswordHasher;
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['company:read']],
+    normalizationContext: [ 'groups' => ['company:read', 'service:read']],
     operations: [
         new Get(),
         new GetCollection(

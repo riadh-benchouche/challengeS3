@@ -23,14 +23,14 @@ use ApiPlatform\Metadata\Delete;
         new Post(
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.hasEmployee(user))
+                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
             ",
             denormalizationContext: ['groups' => 'service:create'],
         ),
         new Patch(
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.hasEmployee(user))
+                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
             ",
             inputFormats: [ "json" ],
             denormalizationContext: ['groups' => 'service:update'],
@@ -38,7 +38,7 @@ use ApiPlatform\Metadata\Delete;
         new Delete(
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and and object.hasEmployee(user))
+                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
             ",
         )
     ]
@@ -146,22 +146,6 @@ class Service
         $this->employee = $employee;
 
         return $this;
-    }
-
-    public function removeEmployee(Employee $employee): static
-    {
-        $this->employees->removeElement($employee);
-
-        return $this;
-    }
-
-    /**
-     * @param Employee $employee
-     * @return bool
-     */
-    public function hasEmployee(Employee $employee): bool
-    {
-        return $this->employees->contains($employee);
     }
 
     /**
