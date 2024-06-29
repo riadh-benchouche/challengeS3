@@ -42,6 +42,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         )
     ]
 )]
+#[AcmeAssert\UniqueRating]
 class Rating
 {
     #[ORM\Id]

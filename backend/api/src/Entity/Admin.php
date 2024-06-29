@@ -7,6 +7,8 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as AcmeAssert;
 
 #[ORM\Entity(repositoryClass: AdminRepository::class)]
 class Admin implements UserInterface, PasswordAuthenticatedUserInterface
@@ -17,6 +19,7 @@ class Admin implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[AcmeAssert\UniqueEmail]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]

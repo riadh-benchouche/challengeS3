@@ -33,7 +33,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             ",
         ),
         new GetCollection(
-            // security: "is_granted('ROLE_ADMIN')",
+            security: "is_granted('ROLE_ADMIN')",
         ),
         new Post(
             processor: UserPasswordHasher::class,
@@ -62,6 +62,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:create'])]
+    #[AcmeAssert\UniqueEmail(groups: ['user:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]

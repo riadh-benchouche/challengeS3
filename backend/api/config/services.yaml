@@ -46,6 +46,14 @@ services:
     App\State\UserPasswordHasher:
         bind:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
-            
+
+    App\Validator\Constraints\UniqueEmailValidator:
+        tags: ['validator.constraint_validator']
+
+    App\Validator\Constraints\UniqueRatingValidator:
+        arguments:
+            $ratingRepository: '@App\Repository\RatingRepository'
+        tags:
+            - { name: validator.constraint_validator, alias: 'app.unique_rating' }
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

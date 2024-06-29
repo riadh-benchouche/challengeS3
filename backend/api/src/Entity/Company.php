@@ -12,6 +12,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as AcmeAssert;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Delete;
@@ -93,6 +94,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     #[Groups(['company:read', 'company:create'])]
+    #[AcmeAssert\UniqueEmail(groups: ['company:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
