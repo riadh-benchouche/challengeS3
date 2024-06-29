@@ -3,7 +3,7 @@ import {useState} from "react";
 import Switcher from "@/components/Switcher.tsx";
 import {PhotoIcon} from "@heroicons/react/16/solid";
 
-export default function CompanyForm({type = 'create', id}: { type: 'create' | 'edit', id?: string }) {
+export default function EstablishmentForm({type = 'create', id}: { type: 'create' | 'edit', id?: string }) {
 
     const [name, setName] = useState<string>('')
     const [kbis, setKbis] = useState<string>('')

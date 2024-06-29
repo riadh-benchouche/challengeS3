@@ -1,10 +1,26 @@
 import {RouteObject} from "react-router-dom";
 import {getLayout} from "@/routes/getLayout.tsx";
+import OrganizationDashboard from "@/pages/organization/Dashboard.tsx";
+import OrganizationEstablishment from "@/pages/organization/Establishment.tsx";
+import OrganizationEmployees from "@/pages/organization/Employees.tsx";
+import OrganizationCalendar from "@/pages/organization/Calendar.tsx";
 
 const organizationRoutes: RouteObject[] = [
     {
-        path: "/organization",
-        element: getLayout(<div>Organization</div>, false, false, true, false)
+        path: "/organization/dashboard",
+        element: getLayout(<OrganizationDashboard/>, false, false, true, false)
+    },
+    {
+        path: "/organization/establishment",
+        element: getLayout(<OrganizationEstablishment/>, false, false, true, false)
+    },
+    {
+        path: "/organization/employees",
+        element: getLayout(<OrganizationEmployees/>, false, false, true, false)
+    },
+    {
+        path: "/organization/calendar",
+        element: getLayout(<OrganizationCalendar/>, false, false, true, false)
     }
 ]
 

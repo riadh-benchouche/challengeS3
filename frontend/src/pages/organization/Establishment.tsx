@@ -1,9 +1,9 @@
 import SideBarModal from "@/components/SideBarModal.tsx";
-import {useState} from "react";
 import CompanyForm from "@/pages/admin/forms/CompanyForm.tsx";
+import {useState} from "react";
 import Table from "@/components/Table.tsx";
 
-const companies = [
+const establishments = [
     {
         name: "ABC Développement",
         kbis: "2019B01234",
@@ -23,7 +23,7 @@ const companies = [
         date_creation: "2020-03-05"
     }
 ]
-export default function Companies() {
+export default function OrganizationEstablishment() {
     const [openCreate, setOpenCreate] = useState(false)
     return (
         <>
@@ -32,18 +32,19 @@ export default function Companies() {
                           handleSubmit={(e) => e.preventDefault()}>
                 <CompanyForm type="create"/>
             </SideBarModal>
-            <Table title="Entreprises"
-                   description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
-                   columns={[
-                       {key: 'name', name: 'Nom'},
-                       {key: 'kbis', name: 'Kbis'},
-                       {key: 'status', name: 'Statut'},
-                       {key: 'date_creation', name: 'Date de création'},
-                   ]}
-                   rows={companies}
-                   onEdit={() => setOpenCreate(true)}
-                   onAdd={() => setOpenCreate(true)}
-                   buttonLabel="Ajouter une entreprise"
+            <Table
+                title="Entreprises"
+                description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
+                columns={[
+                    {key: 'name', name: 'Nom'},
+                    {key: 'kbis', name: 'Kbis'},
+                    {key: 'status', name: 'Statut'},
+                    {key: 'date_creation', name: 'Date de création'},
+                ]}
+                rows={establishments}
+                onEdit={() => setOpenCreate(true)}
+                onAdd={() => setOpenCreate(true)}
+                buttonLabel="Ajouter une entreprise"
             />
         </>
     )

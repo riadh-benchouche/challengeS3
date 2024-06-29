@@ -16,6 +16,7 @@ import {
     UsersIcon,
     XMarkIcon,
     UserIcon,
+    CalendarIcon
 } from '@heroicons/react/24/outline'
 
 const AdminNavigation = [
@@ -26,10 +27,9 @@ const AdminNavigation = [
 
 const OrganizationNavigation = [
     {name: 'Tableau de bord', href: '/organization/dashboard', icon: HomeIcon, current: true},
-    {name: 'Etablissement', href: '/organization/establishments', icon: FolderIcon, current: false},
-    {name: 'Salarié', href: '/organization/employees', icon: UsersIcon, current: false},
-    {name: 'Services', href: '/organization/services', icon: FolderIcon, current: false},
-    {name: 'Calendrier', href: '/organization/calendar', icon: FolderIcon, current: false},
+    {name: 'Establishments', href: '/organization/establishment', icon: FolderIcon, current: false},
+    {name: 'Employees', href: '/organization/employees', icon: UsersIcon, current: false},
+    {name: 'Calendar', href: '/organization/calendar', icon: CalendarIcon, current: false},
 ]
 
 const userNavigation = [
