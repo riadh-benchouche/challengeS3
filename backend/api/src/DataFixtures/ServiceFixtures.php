@@ -23,7 +23,7 @@ class ServiceFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => 'Web Development',
                 'description' => 'Full stack web development service.',
-                'duration' => 120,
+                'duration' => 2,
                 'price' => 200,
                 'reference' => "web-development",
                 'employeeReference' => "john-doe",
@@ -31,7 +31,7 @@ class ServiceFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => 'Graphic Design',
                 'description' => 'Creative graphic design service.',
-                'duration' => 90,
+                'duration' => 1,
                 'price' => 150,
                 'reference' => "graphic-design",
                 'employeeReference' => "jane-smith",
@@ -39,7 +39,7 @@ class ServiceFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => 'Digital Marketing',
                 'description' => 'Comprehensive digital marketing strategy.',
-                'duration' => 60,
+                'duration' => 1,
                 'price' => 120,
                 'reference' => "digital-marketing",
                 'employeeReference' => "robert-brown",
@@ -47,7 +47,7 @@ class ServiceFixtures extends Fixture implements DependentFixtureInterface
             [
                 'name' => 'Content Writing',
                 'description' => 'Professional content writing service.',
-                'duration' => 45,
+                'duration' => 2,
                 'price' => 80,
                 'reference' => "content-writing",
                 'employeeReference' => "emily-jones",
