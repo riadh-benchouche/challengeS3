@@ -5,20 +5,17 @@ namespace App\Dto;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
-use App\Controller\MailController; 
+use App\Controller\MailController;
 
 #[ApiResource(
-    denormalizationContext: ['groups' => ['email']],
-    normalizationContext: ['groups' => ['email']],
-    operations:[
+    operations: [
         new Post(
             controller: MailController::class,
             output: false,
-        )
-        ],
-    
+        )],
+    normalizationContext: ['groups' => ['email']],
+    denormalizationContext: ['groups' => ['email']],
 )]
-
 class EmailDto
 
 {

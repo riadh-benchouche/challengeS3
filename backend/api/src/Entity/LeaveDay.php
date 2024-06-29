@@ -21,19 +21,19 @@ use ApiPlatform\Metadata\ApiProperty;
         new Get(),
         new GetCollection(),
         new Post(
+            denormalizationContext: ['groups' => 'leave-day:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
-            denormalizationContext: ['groups' => 'leave-day:create'],
         ),
         new Patch(
+            inputFormats: [ "json" ],
+            denormalizationContext: ['groups' => 'leave-day:update'],
             security: "
                 is_granted('ROLE_ADMIN')
                 or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'leave-day:update'],
         ),
         new Delete(
             security: "

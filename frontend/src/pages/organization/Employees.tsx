@@ -1,21 +1,19 @@
-import {useState} from 'react'
+import {useState} from "react";
 import SideBarModal from "@/components/SideBarModal.tsx";
-import AdminForm from "@/pages/admin/forms/AdminForm.tsx";
+import EmployeeForm from "@/pages/organization/forms/EmployeeForm.tsx";
 import Table from "@/components/Table.tsx";
 
 const people = [
     {name: 'Lindsay Walton', title: 'Front-end Developer', email: 'lindsay.walton@example.com', role: 'Administrator'},
-    // More people...
 ]
 
-export default function Administrators() {
+export default function OrganizationEmployees() {
     const [openCreate, setOpenCreate] = useState(false)
-
     return (
         <>
             <SideBarModal open={openCreate} setOpen={setOpenCreate} title="Add user"
                           description="Add a new user to your account." handleSubmit={(e) => e.preventDefault()}>
-                <AdminForm type='create'/>
+                <EmployeeForm type='create'/>
             </SideBarModal>
             <Table title="Employés"
                    description="Liste de tous les employes de votre organization, y compris leur nom, titre, email et rôle."
@@ -31,6 +29,5 @@ export default function Administrators() {
                    onAdd={() => setOpenCreate(true)}
             />
         </>
-
     )
 }
