@@ -15,24 +15,23 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: RatingRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['rating:read']],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
+            denormalizationContext: ['groups' => 'rating:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and object.getRatedEmployee().getId() == user.getId())
             ",
-            denormalizationContext: ['groups' => 'rating:create'],
         ),
         new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'rating:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and object.getRatingClient().getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'rating:update'],
         ),
         new Delete(
             security: "
@@ -40,9 +39,10 @@ use Symfony\Component\Validator\Constraints as Assert;
                 or (is_granted('ROLE_CLIENT') and object.getRatingClient().getId() == user.getId())
             ",
         )
-    ]
+    ],
+    normalizationContext: ['groups' => ['rating:read']]
 )]
-#[AcmeAssert\UniqueRating]
+//#[AcmeAssert\UniqueRating]
 class Rating
 {
     #[ORM\Id]
