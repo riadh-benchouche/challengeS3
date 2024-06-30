@@ -1,6 +1,16 @@
 import {Dispatch, SetStateAction} from "react";
 
-export default function Table({title, description, columns, rows, buttonLabel, onEdit, onAdd}:
+export default function Table({
+                                  title,
+                                  description,
+                                  columns,
+                                  rows,
+                                  buttonLabel,
+                                  onEdit,
+                                  onAdd,
+                                  hrefView,
+                                  showView = true
+                              }:
                                   {
                                       title: string,
                                       description: string,
@@ -9,6 +19,8 @@ export default function Table({title, description, columns, rows, buttonLabel, o
                                       buttonLabel: string,
                                       onEdit: Dispatch<SetStateAction<boolean>>
                                       onAdd: Dispatch<SetStateAction<boolean>>
+                                      hrefView?: string
+                                      showView?: boolean
                                   }) {
     return (
         <>
@@ -46,6 +58,9 @@ export default function Table({title, description, columns, rows, buttonLabel, o
                                         <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                             <span className="sr-only">Edit</span>
                                         </th>
+                                        <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                            <span className="sr-only">View</span>
+                                        </th>
                                     </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 bg-white">
@@ -56,12 +71,17 @@ export default function Table({title, description, columns, rows, buttonLabel, o
                                                     {row[column.key]}
                                                 </td>
                                             ))}
-                                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                            <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
                                                 <button
                                                     onClick={() => onEdit(true)}
                                                     className="text-primary-600 hover:text-primary-900">
                                                     Modifier<span className="sr-only">, {row.name}</span>
                                                 </button>
+                                                {(showView && hrefView) && <a
+                                                    href={hrefView + '1'}
+                                                    className="text-primary-600 hover:text-primary-900">
+                                                    Voir<span className="sr-only">, {row.name}</span>
+                                                </a>}
                                             </td>
                                         </tr>
                                     ))}

@@ -17,7 +17,7 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
     useEffect(() => {
         if (adminSecurity && !Object.values(roles).includes("ROLE_ADMIN")) {
             navigate("/forbidden");
-        } else if (organizationSecurity && !Object.values(roles).includes("ROLE_ORGANIZATION")) {
+        } else if (organizationSecurity && !Object.values(roles).includes("ROLE_COMPANY")) {
             navigate("/forbidden");
         } else if (clientSecurity && !Object.values(roles).includes("ROLE_CLIENT")) {
             navigate("/forbidden");
@@ -40,7 +40,7 @@ const Layout = ({children, adminSecurity, clientSecurity, organizationSecurity, 
         );
     }
 
-    if (Object.values(roles).includes("ROLE_ORGANIZATION")) {
+    if (Object.values(roles).includes("ROLE_COMPANY")) {
         return (
             <AdminLayout role={Object.values(roles)?.[0] as string}>
                 {children}

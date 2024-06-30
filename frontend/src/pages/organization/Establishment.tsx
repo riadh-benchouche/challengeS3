@@ -33,8 +33,8 @@ export default function OrganizationEstablishment() {
                 <CompanyForm type="create"/>
             </SideBarModal>
             <Table
-                title="Entreprises"
-                description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
+                title="Établissements"
+                description="Une liste de toutes les établissements de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
                 columns={[
                     {key: 'name', name: 'Nom'},
                     {key: 'kbis', name: 'Kbis'},
@@ -44,7 +44,8 @@ export default function OrganizationEstablishment() {
                 rows={establishments}
                 onEdit={() => setOpenCreate(true)}
                 onAdd={() => setOpenCreate(true)}
-                buttonLabel="Ajouter une entreprise"
+                hrefView="/organization/establishment/"
+                buttonLabel="Ajouter un établissement"
             />
         </>
     )

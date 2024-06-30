@@ -1,10 +1,17 @@
 import Button from "@/components/Button.tsx";
 import Input from "@/components/Input.tsx";
-import React, {useState} from "react";
+import {useState} from "react";
 import axiosInstance from "@/utils/axiosInstance.ts";
 import {useNavigate} from "react-router-dom";
 import {XCircleIcon} from '@heroicons/react/20/solid'
 import {jwtDecode} from "jwt-decode";
+
+interface DecodedToken {
+    id: string
+    roles: string[]
+    iat: number
+    exp: number
+}
 
 export default function Login() {
     const [email, setEmail] = useState('')
@@ -15,12 +22,19 @@ export default function Login() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         axiosInstance.post('/login', {email, password}).then(r => {
-            const decoded: any = jwtDecode(r.data.token);
+            const decoded: DecodedToken = jwtDecode(r.data.token);
             if (decoded?.roles) {
                 localStorage.setItem('roles', JSON.stringify(decoded?.roles))
             }
             localStorage.setItem('token', 'Bearer ' + r.data.token)
-            navigate('/')
+            if (decoded?.roles.includes('ROLE_ADMIN')) {
+                return navigate('/admin/dashboard')
+            }
+            if (decoded?.roles.includes('ROLE_COMPANY')) {
+                return navigate('/organization/dashboard')
+            } else {
+                return navigate('/')
+            }
         }).catch(e => {
             console.error(e)
             setError('Email ou mot de passe incorrect')
