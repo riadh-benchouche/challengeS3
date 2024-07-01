@@ -86,7 +86,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['company:read', 'company:update'])]
     private ?string $country = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
+    #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['company:read', 'company:update'])]
     private ?string $description = null;
     
