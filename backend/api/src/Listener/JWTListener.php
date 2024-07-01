@@ -7,15 +7,11 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class JWTListener
 {
-    public function onJWTListener(JWTCreatedEvent $event)
+    public function onJWTListener(JWTCreatedEvent $event): void
     {
         $data = $event->getData();
 
         $user = $event->getUser();
-
-        if (!$user instanceof UserInterface) {
-            return;
-        }
 
         $data['id'] = $user->getId();
 

@@ -54,13 +54,14 @@ export default function SideBarModal({open, setOpen, title, description, childre
                                 <div className="flex flex-shrink-0 justify-end px-4 py-4 space-x-2">
                                     <Button
                                         type="button"
-                                        color="secondary"
+                                        primary={false}
                                         onClick={() => setOpen(false)}
                                     >
                                         Cancel
                                     </Button>
                                     <Button
                                         type="submit"
+                                        primary={true}
                                     >
                                         Save
                                     </Button>

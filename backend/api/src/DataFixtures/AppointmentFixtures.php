@@ -11,7 +11,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class AppointmentFixtures extends Fixture implements DependentFixtureInterface
 {
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             UserFixtures::class,
@@ -21,28 +21,22 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
+        $faker = \Faker\Factory::create();
         $user1 = $this->getReference('user1@example.com');
         $user2 = $this->getReference('user2@example.com');
         $webDevelopmentService = $this->getReference('web-development');
         $graphicDesignService = $this->getReference('graphic-design');
 
-        $appointment1 = new Appointment();
-        $appointment1->setBeginning(9);
-        $appointment1->setDuration(3);
-        $appointment1->setStatus('Booked');
-        $appointment->setReservationDate(new \DateTime('2024-06-30'));
-        $appointment1->setBookedBy($user1);
-        $appointment1->setService($webDevelopmentService);
-        $manager->persist($appointment1);
-
-        $appointment2 = new Appointment();
-        $appointment2->setBeginning(13);
-        $appointment2->setDuration(4);
-        $appointment2->setStatus('Confirmed');
-        $appointment->setReservationDate(new \DateTime('2024-06-30'));
-        $appointment2->setBookedBy($user2);
-        $appointment2->setService($graphicDesignService);
-        $manager->persist($appointment2);
+        for ($i = 0; $i < 10; $i++) {
+            $appointment = new Appointment();
+            $appointment->setBeginning($faker->numberBetween(9, 17));
+            $appointment->setDuration($faker->numberBetween(1, 4));
+            $appointment->setStatus($faker->randomElement(['Booked', 'Confirmed', 'Cancelled']));
+            $appointment->setReservationDate($faker->dateTimeBetween('-1 month', '+1 month'));
+            $appointment->setBookedBy($faker->randomElement([$user1, $user2]));
+            $appointment->setService($faker->randomElement([$webDevelopmentService, $graphicDesignService]));
+            $manager->persist($appointment);
+        }
 
         $manager->flush();
     }

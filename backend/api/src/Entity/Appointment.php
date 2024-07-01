@@ -15,34 +15,40 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['appointment:read']],
     operations: [
-        new Get(),
+        new Get(
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
+            ",
+        ),
         new GetCollection(),
         new Post(
+            normalizationContext: ['groups' => 'appointment:response'],
+            denormalizationContext: ['groups' => 'appointment:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
             ",
-            denormalizationContext: ['groups' => 'appointment:create'],
-            normalizationContext: ['groups' => 'appointment:response'],
         ),
         new Patch(
+            inputFormats: [ "json" ],
+            normalizationContext: ['groups' => 'appointment:response'],
+            denormalizationContext: ['groups' => 'appointment:update'],
             security: "
                 is_granted('ROLE_ADMIN')
                 or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'appointment:update'],
-            normalizationContext: ['groups' => 'appointment:response'],
         ),
         new Delete(
+            uriTemplate: "/appointments/{id}",
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
             ",
         )
-    ]
+    ],
+    normalizationContext: [ 'groups' => ['appointment:read']]
 )]
 class Appointment
 {

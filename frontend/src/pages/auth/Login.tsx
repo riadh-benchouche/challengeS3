@@ -1,6 +1,6 @@
 import Button from "@/components/Button.tsx";
 import Input from "@/components/Input.tsx";
-import {useState} from "react";
+import React, {useState} from "react";
 import axiosInstance from "@/utils/axiosInstance.ts";
 import {useNavigate} from "react-router-dom";
 import {XCircleIcon} from '@heroicons/react/20/solid'
@@ -8,6 +8,7 @@ import {jwtDecode} from "jwt-decode";
 
 interface DecodedToken {
     id: string
+    username: string
     roles: string[]
     iat: number
     exp: number
@@ -25,6 +26,8 @@ export default function Login() {
             const decoded: DecodedToken = jwtDecode(r.data.token);
             if (decoded?.roles) {
                 localStorage.setItem('roles', JSON.stringify(decoded?.roles))
+                localStorage.setItem('userId', decoded?.id)
+                localStorage.setItem('email', decoded?.username)
             }
             localStorage.setItem('token', 'Bearer ' + r.data.token)
             if (decoded?.roles.includes('ROLE_ADMIN')) {
@@ -43,8 +46,8 @@ export default function Login() {
 
     return (
         <>
-            <div className="mx-auto w-full max-w-sm lg:w-96">
-                <div>
+            <div className="flex flex-col flex-1 mx-auto w-full max-w-sm lg:w-96">
+                <div className="mt-auto">
                     <img
                         className="h-10 w-auto"
                         src="https://tailwindui.com/img/logos/mark.svg?color=primary&shade=600"
@@ -114,6 +117,14 @@ export default function Login() {
                             </div>
                         </form>
                     </div>
+                </div>
+                <div className="mt-auto">
+                    <p className="text-sm text-gray-500 text-center">
+                        Vous souhaitez ouvrir un compte ?{' '} <br/>
+                        <a href="/register-company" className="font-semibold text-primary-600 hover:text-primary-500">
+                            Crée un compte professionnel
+                        </a>{' '}
+                    </p>
                 </div>
             </div>
         </>
