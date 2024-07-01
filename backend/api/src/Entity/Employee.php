@@ -228,12 +228,8 @@ class Employee
     public function removeService(Service $service): static
     {
         if ($this->services->removeElement($service)) {
-            // set the owning side to null (unless already changed)
-            if ($service->getEmployee() === $this) {
-                $service->setEmployee(null);
-            }
+            $service->removeEmployee($this);
         }
-
         return $this;
     }
 

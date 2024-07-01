@@ -16,32 +16,32 @@ use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['service:read', 'employee:read', 'user:read']],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
+            denormalizationContext: ['groups' => 'service:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
             ",
-            denormalizationContext: ['groups' => 'service:create'],
         ),
         new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'service:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'service:update'],
         ),
         new Delete(
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.getEmployee().getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
             ",
         )
-    ]
+    ],
+    normalizationContext: ['groups' => ['service:read', 'employee:read', 'user:read']]
 )]
 class Service
 {

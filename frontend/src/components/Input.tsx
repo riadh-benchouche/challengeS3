@@ -4,7 +4,7 @@ export default function Input({label, type, placeholder, value, onChange, classN
     label?: string,
     type: string,
     placeholder: string,
-    value: string,
+    value: string | number,
     onChange: (e: ChangeEvent<HTMLInputElement>) => void,
     className?: string
     required?: boolean

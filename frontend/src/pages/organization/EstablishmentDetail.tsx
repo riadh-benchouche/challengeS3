@@ -16,6 +16,7 @@ export default function EstablishmentDetail() {
     const [openCreateService, setOpenCreateService] = useState(false)
     const [openCreateEmployee, setOpenCreateEmployee] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
+    const [selectedService, setSelectedService] = useState<Service | null>(null)
     const location = useLocation()
     const establishmentId = location.pathname.split("/").pop()
     const [services, setServices] = useState<Service[]>([])
@@ -46,15 +47,23 @@ export default function EstablishmentDetail() {
         setSelectedEmployee(employee)
         setOpenCreateEmployee(true)
     }
+
+    const openEditService = (service: Service) => {
+        setSelectedService(service)
+        setOpenCreateService(true)
+    }
     return (
         <div>
             <SideBarModal open={openCreateService} setOpen={setOpenCreateService} title="Ajouter un service"
                           description="Ajoutez un nouveau service">
-                <ServiceForm type={'create'}/>{ /* TODO: Add the id of the establishment */}
+                <ServiceForm type={selectedService ? 'edit' : 'create'}
+                             service={selectedService ? selectedService : undefined}
+                             setClose={() => setOpenCreateService(false)}/>
             </SideBarModal>
             <SideBarModal open={openCreateEmployee} setOpen={setOpenCreateEmployee} title="Ajouter un employé"
                           description="Ajoutez un nouvel employé">
                 <EmployeeForm type={selectedEmployee ? 'edit' : 'create'}
+                              servicesList={services}
                               employee={selectedEmployee ? selectedEmployee : undefined}
                               setClose={() => setOpenCreateEmployee(false)}/>
             </SideBarModal>
@@ -109,7 +118,9 @@ export default function EstablishmentDetail() {
                     ]}
                     rows={services as unknown as { [key: string]: string }[]}
                     buttonLabel="Ajouter un service"
-                    onEdit={() => setOpenCreateService(true)}
+                    onEdit={(s: unknown | Service) => {
+                        openEditService(s as Service)
+                    }}
                     onAdd={() => setOpenCreateService(true)}
                 />)}
 
