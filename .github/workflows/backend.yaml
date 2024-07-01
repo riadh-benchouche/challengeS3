@@ -49,6 +49,14 @@ jobs:
       - name: List Docker containers
         run: docker ps
 
+      # Inspect Docker containers (for debugging purposes)
+      - name: Inspect Docker containers
+        run: |
+          for container in $(docker ps -q); do
+            echo "Inspecting container $container:"
+            docker inspect $container
+          done
+
       # Check Docker logs (for debugging purposes)
       - name: Check Docker logs
         run: |
