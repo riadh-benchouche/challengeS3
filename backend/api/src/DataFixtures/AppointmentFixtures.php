@@ -3,8 +3,9 @@
 namespace App\DataFixtures;
 
 use App\Entity\Appointment;
-use App\Entity\User;
-use App\Entity\Service;
+use App\DataFixtures\UserFixtures;
+use App\DataFixtures\EmployeeFixtures;
+use App\DataFixtures\ServiceFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -16,6 +17,7 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
         return [
             UserFixtures::class,
             ServiceFixtures::class,
+            EmployeeFixtures::class,
         ];
     }
 
@@ -26,6 +28,7 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
         for ($i = 0; $i < 11; $i++) {
             $user = $this->getReference('user_' . $faker->numberBetween(1, 10));
             $service = $this->getReference('service_' . $faker->numberBetween(1, 10));
+            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10));
             $appointment = new Appointment();
             $appointment->setBeginning($faker->randomElement(['9', '13']));
             $appointment->setDuration($faker->numberBetween(1, 4));
@@ -33,6 +36,7 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
             $appointment->setReservationDate($faker->dateTimeBetween('-1 month', '+1 month'));
             $appointment->setBookedBy($user);
             $appointment->setService($service);
+            $appointment->setEmployee($employee);
             $manager->persist($appointment);
         }
 

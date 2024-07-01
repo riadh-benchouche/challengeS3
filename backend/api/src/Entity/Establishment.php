@@ -84,9 +84,17 @@ class Establishment
     #[Groups(['company:read', 'employee:read', 'establishment:read'])]
     private Collection $employees;
 
+    /**
+     * @var Collection<int, Service>
+     */
+    #[ORM\OneToMany(mappedBy: 'establishment', targetEntity: Service::class)]
+    #[Groups(['establishment:read', 'service:read'])]
+    private Collection $services;
+
     public function __construct()
     {
         $this->employees = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -202,6 +210,36 @@ class Establishment
             // set the owning side to null (unless already changed)
             if ($employee->getEstablishment() === $this) {
                 $employee->setEstablishment(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Service>
+     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): static
+    {
+        if (!$this->services->contains($service)) {
+            $this->services->add($service);
+            $service->setEstablishment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeService(Service $service): static
+    {
+        if ($this->services->removeElement($service)) {
+            // set the owning side to null (unless already changed)
+            if ($service->getEstablishment() === $this) {
+                $service->setEstablishment(null);
             }
         }
 

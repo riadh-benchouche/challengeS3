@@ -93,8 +93,11 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['employee:read'])]
     private Collection $ratings;
 
-    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Service::class)]
-    #[Groups(['employee:read', 'establishment:read', 'admin:employee:read', 'company:read'])]
+        /**
+     * @var Collection<int, Service>
+     */
+    #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'employees')]
+    #[Groups(['employee:read', 'service:read'])]
     private Collection $services;
 
     /**

@@ -28,8 +28,9 @@ class CompanyFixtures extends Fixture
             $company->setFoundationDate($faker->dateTimeBetween('-2 years', '-1 year'));
             $company->setDescription($faker->text);
             $company->setRaised($faker->randomFloat(2, 1000, 100000));
-            $company->setCountry($faker->country);
-            $company->setKbis($faker->url);
+            $company->setCountry($faker->country);            
+            $company->setKbisFile(new File(__DIR__ . '/../../public/uploads/kbis' . $i . '.jpg'));
+            $company->setKbis('kbis' . $i . '-file');
             $company->setImage($faker->imageUrl(640, 480, 'business', true));
             $manager->persist($company);
             $this->addReference('company_' . $i, $company);

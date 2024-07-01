@@ -12,6 +12,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Patch;
 use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 
 #[ORM\Entity(repositoryClass: AppointmentRepository::class)]
 #[ApiResource(
@@ -41,7 +43,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
             ",
         ),
         new Delete(
-            uriTemplate: "/appointments/{id}",
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
@@ -50,6 +51,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     ],
     normalizationContext: [ 'groups' => ['appointment:read']]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['bookedBy'=> 'exact'])]
 class Appointment
 {
     #[ORM\Id]
@@ -93,6 +95,10 @@ class Appointment
     #[ORM\ManyToOne(inversedBy: 'appointments')]
     #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:create', 'user:read'])]
     private ?Service $service = null;
+
+    #[ORM\ManyToOne(inversedBy: 'appointments')]
+    #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:create', 'user:read'])]
+    private ?Employee $employee = null;
 
     public function getId(): ?int
     {
@@ -167,6 +173,18 @@ class Appointment
     public function setService(?Service $service): static
     {
         $this->service = $service;
+
+        return $this;
+    }
+
+    public function getEmployee(): ?Employee
+    {
+        return $this->employee;
+    }
+
+    public function setEmployee(?Employee $employee): static
+    {
+        $this->employee = $employee;
 
         return $this;
     }

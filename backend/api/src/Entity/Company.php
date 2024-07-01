@@ -87,7 +87,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $country = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
-    #[Groups(['company:read', 'company:update'])]
+    #[Groups(['company:read', 'company:update', 'establishment:read'])]
     private ?string $description = null;
     
     #[ORM\Column(length: 255, nullable: true)]
@@ -125,7 +125,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $establishments;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['company:read', 'company:create', 'company:update'])]
+    #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
     #[Assert\Url]
     private ?string $image = null;
 
@@ -257,7 +257,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->id;
+        return (string) $this->email;
     }
 
     /**
