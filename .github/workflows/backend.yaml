@@ -45,6 +45,7 @@ jobs:
           docker ps
           while ! curl -s http://localhost:80 > /dev/null; do
             echo "Waiting for the service to start..."
+            docker ps
             sleep 5
           done
 
@@ -55,6 +56,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: List Docker containers
+        run: docker ps
+      - name: Check Docker logs
+        run: docker logs $(docker ps -q) # Affiche les logs de tous les conteneurs en cours d'exécution
       - name: Check HTTP reachability
         working-directory: backend
         run: curl -v --fail-with-body http://localhost:80
