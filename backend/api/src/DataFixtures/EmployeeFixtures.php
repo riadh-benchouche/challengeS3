@@ -36,7 +36,6 @@ class EmployeeFixtures extends Fixture implements DependentFixtureInterface
             $employee->setEmail($faker->email);
             $employee->setCategory($faker->randomElement(['manager', 'employee']));
             $employee->setEstablishment($establishment);
-            $employee->setPassword($this->passwordHasher->hashPassword($employee, 'password'));
             $manager->persist($employee);
             $this->addReference('employee_' . $i, $employee);
         }

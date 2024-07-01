@@ -26,23 +26,22 @@ use App\State\UserPasswordHasher;
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['company:read', 'service:read']],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
-            processor: UserPasswordHasher::class,
             denormalizationContext: ['groups' => 'company:create'],
             validationContext: ['groups' => 'company:create'],
+            processor: UserPasswordHasher::class,
         ),
         new Patch(
-            processor: UserPasswordHasher::class,
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'company:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'company:update'],
+            processor: UserPasswordHasher::class,
         ),
         new Delete(
             security: "
@@ -51,6 +50,7 @@ use App\State\UserPasswordHasher;
             ",
         )
     ],
+    normalizationContext: ['groups' => ['company:read', 'service:read']],
 )]
 class Company implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -61,7 +61,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'company:create', 'company:update'])]
+    #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
     private ?string $name = null;
 
     #[Vich\UploadableField(mapping: 'kbis_file', fileNameProperty: 'kbis')]
@@ -75,7 +75,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
             is_granted('ROLE_ADMIN') 
             or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
         ",
-    )]    
+    )]
     private ?string $kbis = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
@@ -89,7 +89,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     #[Groups(['company:read', 'company:update', 'establishment:read'])]
     private ?string $description = null;
-    
+
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['company:read', 'company:update'])]
     private ?string $raised = null;
@@ -114,7 +114,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private ?array $roles = ['ROLE_COMPANY'];
 
     #[Groups(['company:create'])]
-    #[Assert\Length(min:4)]
+    #[Assert\Length(min: 4)]
     private ?string $plainPassword = null;
 
     /**
@@ -257,7 +257,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return (string)$this->email;
     }
 
     /**

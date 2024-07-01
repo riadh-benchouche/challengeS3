@@ -6,13 +6,9 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\EmployeeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
-use App\State\UserPasswordHasher;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -22,34 +18,32 @@ use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: EmployeeRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['employee:read', 'appointment:read']],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
-            processor: UserPasswordHasher::class,
+            denormalizationContext: ['groups' => 'employee:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId()
             ",
-            denormalizationContext: ['groups' => 'employee:create'],
             validationContext: ['groups' => 'employee:create'],
         ),
         new Patch(
-            processor: UserPasswordHasher::class,
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'employee:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_EMPLOYEE') and object.getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
             ",
-            inputFormats: ["json"],
-            denormalizationContext: ['groups' => 'employee:update']
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')"
         )
-        ],
-    )]
-class Employee implements UserInterface, PasswordAuthenticatedUserInterface
+    ],
+    normalizationContext: ['groups' => ['employee:read', 'appointment:read']],
+)]
+class Employee
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -58,7 +52,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['employee:create'])]
+    #[Groups(['employee:create', 'establishment:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -79,8 +73,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $category = null;
 
-    private array $roles = ['ROLE_EMPLOYEE'];
-
     #[ORM\ManyToOne(inversedBy: 'employees')]
     #[Groups(['employee:read', 'admin:employee:read', 'employee:create'])]
     private ?Establishment $establishment = null;
@@ -92,7 +84,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['employee:read'])]
     private Collection $ratings;
 
-        /**
+    /**
      * @var Collection<int, Service>
      */
     #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'employees')]
@@ -143,30 +135,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
-
-        return $this;
-    }
-
     public function getFirstName(): ?string
     {
         return $this->firstName;
@@ -203,25 +171,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
-    {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_EMPLOYEE';
-
-        return array_unique($roles);
-    }
-
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
-
-        return $this;
-    }
-
     public function getEstablishment(): ?Establishment
     {
         return $this->establishment;
@@ -232,24 +181,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         $this->establishment = $establishment;
 
         return $this;
-    }
-    
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->id;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        $this->plainPassword = null;
     }
 
     /**
@@ -305,7 +236,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         if ($this->services->removeElement($service)) {
             $service->removeEmployee($this);
         }
-
         return $this;
     }
 

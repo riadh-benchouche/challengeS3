@@ -16,22 +16,21 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: EstablishmentRepository::class)]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['establishment:read', 'service:read', 'employee:read']],
     operations: [
         new Get(),
         new GetCollection(),
         new Post(
+            denormalizationContext: ['groups' => 'establishment:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId() and object.getCompany().getStatus() == 'ACTIVE')",
-            denormalizationContext: ['groups' => 'establishment:create'],
         ),
         new Patch(
+            inputFormats: [ "json" ],
+            denormalizationContext: ['groups' => 'establishment:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId())",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'establishment:update'],
         ),
         new Delete(
             security: "
@@ -39,6 +38,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
                 or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId())",
         )
     ],
+    normalizationContext: [ 'groups' => ['establishment:read', 'service:read', 'employee:read']],
 )]
 class Establishment
 {

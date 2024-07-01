@@ -28,7 +28,6 @@ const AdminNavigation = [
 const OrganizationNavigation = [
     {name: 'Tableau de bord', href: '/organization/dashboard', icon: HomeIcon, current: true},
     {name: 'Etablisments', href: '/organization/establishment', icon: FolderIcon, current: false},
-    {name: 'Employées', href: '/organization/employees', icon: UsersIcon, current: false},
     {name: 'Calendrier', href: '/organization/calendar', icon: CalendarIcon, current: false},
 ]
 

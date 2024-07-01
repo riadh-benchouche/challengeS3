@@ -5,6 +5,7 @@ export interface Employee {
     lastName: string;
     email: string;
     image: string;
+    category: string;
     establishment: EstablishmentType;
     services: Service[];
 }
