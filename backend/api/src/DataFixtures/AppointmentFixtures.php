@@ -29,7 +29,7 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
 
         for ($i = 0; $i < 10; $i++) {
             $appointment = new Appointment();
-            $appointment->setBeginning($faker->numberBetween(9, 17));
+            $appointment->setBeginning($faker->randomElement(['9', '13']));
             $appointment->setDuration($faker->numberBetween(1, 4));
             $appointment->setStatus($faker->randomElement(['Booked', 'Confirmed', 'Cancelled']));
             $appointment->setReservationDate($faker->dateTimeBetween('-1 month', '+1 month'));

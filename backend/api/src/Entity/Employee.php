@@ -111,6 +111,11 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['employee:read', 'admin:employee:read', 'establishment:read'])]
     private Collection $leaveDays;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['employee:read', 'employee:create', 'employee:update'])]
+    #[Assert\Url]
+    private ?string $image = null;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
@@ -361,6 +366,18 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
                 $leaveDay->setEmployee(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
 
         return $this;
     }

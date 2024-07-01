@@ -29,9 +29,7 @@ use App\State\UserPasswordHasher;
     normalizationContext: [ 'groups' => ['company:read', 'service:read']],
     operations: [
         new Get(),
-        new GetCollection(
-            security: "is_granted('ROLE_ADMIN')",
-        ),
+        new GetCollection(),
         new Post(
             processor: UserPasswordHasher::class,
             denormalizationContext: ['groups' => 'company:create'],
@@ -80,14 +78,18 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     )]    
     private ?string $kbis = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: 'date', nullable: true)]
     #[Groups(['company:read', 'company:update'])]
-    private ?int $foundationDate = null;
+    private ?\DateTimeInterface $foundationDate = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['company:read', 'company:update'])]
-    private ?int $countries = null;
+    private ?string $country = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?string $description = null;
+    
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['company:read', 'company:update'])]
     private ?string $raised = null;
@@ -102,6 +104,11 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 255)]
     #[Groups(['company:read', 'put:admin', 'company:update'])]
+    #[ApiProperty(
+        security: "
+            is_granted('ROLE_ADMIN') 
+        ",
+    )]
     private ?string $status = 'PENDING';
 
     private ?array $roles = ['ROLE_COMPANY'];
@@ -116,6 +123,11 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'company', targetEntity: Establishment::class)]
     #[Groups(['company:read'])]
     private Collection $establishments;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:create', 'company:update'])]
+    #[Assert\Url]
+    private ?string $image = null;
 
     public function __construct()
     {
@@ -278,26 +290,50 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getFoundationDate(): ?int
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getFoundationDate(): ?\DateTimeInterface
     {
         return $this->foundationDate;
     }
 
-    public function setFoundationDate(int $foundationDate): static
+    public function setFoundationDate(?\DateTimeInterface $foundationDate): static
     {
         $this->foundationDate = $foundationDate;
 
         return $this;
     }
 
-    public function getCountries(): ?int
+    public function getCountry(): ?string
     {
-        return $this->countries;
+        return $this->country;
     }
 
-    public function setCountries(int $countries): static
+    public function setCountry(string $country): static
     {
-        $this->countries = $countries;
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }
