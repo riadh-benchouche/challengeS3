@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - tests-branch
+  pull_request:
+    branches:
+      - tests-branch
+  workflow_dispatch:
+
+jobs:
+  tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check HTTP reachability
+        working-directory: backend
+        run: curl -v --fail-with-body http://localhost
+      - name: Check API reachability
+        working-directory: backend
+        run: curl -vk --fail-with-body https://localhost
+      - name: Create test database
+        working-directory: backend
+        run: docker compose exec -T php bin/console -e test doctrine:database:create
+      - name: Run migrations
+        working-directory: backend
+        run: docker compose exec -T php bin/console -e test doctrine:migrations:migrate --no-interaction
+      - name: Load fixtures
+        working-directory: backend
+        run: docker compose exec -T php bin/console -e test doctrine:fixtures:load --no-interaction
+      - name: Run PHPUnit
+        working-directory: backend
+        run: docker compose exec -T php bin/phpunit
+      - name: Doctrine Schema Validator
+        working-directory: backend
+        run: docker compose exec -T php bin/console -e test doctrine:schema:validate
