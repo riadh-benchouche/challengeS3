@@ -59,7 +59,11 @@ jobs:
       - name: List Docker containers
         run: docker ps
       - name: Check Docker logs
-        run: docker logs $(docker ps -q) # Affiche les logs de tous les conteneurs en cours d'exécution
+        run: |
+          for container in $(docker ps -q); do
+            echo "Logs for container $container:"
+            docker logs $container
+          done
       - name: Check HTTP reachability
         working-directory: backend
         run: curl -v --fail-with-body http://localhost:80
