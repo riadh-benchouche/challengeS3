@@ -45,6 +45,18 @@ jobs:
         working-directory: backend
         run: docker compose up -d --wait --no-build
 
+      # List Docker containers (for debugging purposes)
+      - name: List Docker containers
+        run: docker ps
+
+      # Check Docker logs (for debugging purposes)
+      - name: Check Docker logs
+        run: |
+          for container in $(docker ps -q); do
+            echo "Logs for container $container:"
+            docker logs $container
+          done
+
       # Wait for services to be ready
       - name: Wait for services to be ready
         run: |
