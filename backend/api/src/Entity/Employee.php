@@ -30,7 +30,7 @@ use ApiPlatform\Metadata\Delete;
             processor: UserPasswordHasher::class,
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCOMPANY().getId() == user.getId()
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId()
             ",
             denormalizationContext: ['groups' => 'employee:create'],
             validationContext: ['groups' => 'employee:create'],
@@ -64,7 +64,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
-    #[Groups(['employee:create'])]
     #[Assert\Length(min: 4)]
     private ?string $plainPassword = null;
 
@@ -97,7 +96,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Service>
      */
     #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'employees')]
-    #[Groups(['employee:read', 'service:read'])]
+    #[Groups(['employee:read', 'service:read', 'employee:create', 'employee:update'])]
     private Collection $services;
 
     /**
@@ -304,10 +303,7 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeService(Service $service): static
     {
         if ($this->services->removeElement($service)) {
-            // set the owning side to null (unless already changed)
-            if ($service->getEmployee() === $this) {
-                $service->setEmployee(null);
-            }
+            $service->removeEmployee($this);
         }
 
         return $this;
