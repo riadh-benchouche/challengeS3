@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Post(
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_USER') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
+                or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
             ",
             denormalizationContext: ['groups' => 'appointment:create'],
             normalizationContext: ['groups' => 'appointment:response'],
@@ -30,7 +30,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Patch(
             security: "
                 is_granted('ROLE_ADMIN')
-                or (is_granted('ROLE_USER') and object.getBookedBy().getId() == user.getId())
+                or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
             ",
             inputFormats: [ "json" ],
             denormalizationContext: ['groups' => 'appointment:update'],
@@ -39,7 +39,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete(
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_USER') and object.getBookedBy().getId() == user.getId())
+                or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
             ",
         )
     ]
@@ -61,8 +61,12 @@ class Appointment
     private ?int $duration = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:response', 'appointment:create', 'appointment:update', 'user:read'])]
-    private ?string $status = null;
+    #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:response', 'appointment:update', 'user:read'])]
+    private ?string $status = "Booked";
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:response', 'appointment:create', 'appointment:update'])]
+    private ?\DateTimeInterface $reservationDate = null;
 
     #[ORM\ManyToOne(inversedBy: 'appointments')]
     #[Groups(['appointment:read', 'appointment:response', 'appointment:create'])]
@@ -121,6 +125,18 @@ class Appointment
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getReservationDate(): ?\DateTimeInterface
+    {
+        return $this->reservationDate;
+    }
+
+    public function setReservationDate(\DateTimeInterface $reservationDate): static
+    {
+        $this->reservationDate = $reservationDate;
 
         return $this;
     }

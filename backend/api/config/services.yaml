@@ -55,5 +55,16 @@ services:
             $ratingRepository: '@App\Repository\RatingRepository'
         tags:
             - { name: validator.constraint_validator, alias: 'app.unique_rating' }
+    
+    App\Validator\Constraints\ClientHadAppointmentWithEmployeeValidator:
+        arguments:
+            $appointmentRepository: '@App\Repository\AppointmentRepository'
+        tags:
+            - { name: validator.constraint_validator, alias: 'app.client_had_appointment_with_employee' }
+
+    App\Serializer\CustomDateNormalizer:
+        tags: ['serializer.normalizer']
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

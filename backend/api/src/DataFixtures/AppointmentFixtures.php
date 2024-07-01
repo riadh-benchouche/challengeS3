@@ -29,7 +29,8 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
         $appointment1 = new Appointment();
         $appointment1->setBeginning(9);
         $appointment1->setDuration(3);
-        $appointment1->setStatus('Pending');
+        $appointment1->setStatus('Booked');
+        $appointment->setReservationDate(new \DateTime('2024-06-30'));
         $appointment1->setBookedBy($user1);
         $appointment1->setService($webDevelopmentService);
         $manager->persist($appointment1);
@@ -38,6 +39,7 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
         $appointment2->setBeginning(13);
         $appointment2->setDuration(4);
         $appointment2->setStatus('Confirmed');
+        $appointment->setReservationDate(new \DateTime('2024-06-30'));
         $appointment2->setBookedBy($user2);
         $appointment2->setService($graphicDesignService);
         $manager->persist($appointment2);

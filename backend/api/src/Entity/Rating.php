@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as AcmeAssert;
 
 #[ORM\Entity(repositoryClass: RatingRepository::class)]
 #[ApiResource(
@@ -42,7 +43,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
     normalizationContext: ['groups' => ['rating:read']]
 )]
-//#[AcmeAssert\UniqueRating]
+#[AcmeAssert\UniqueRating]
+#[AcmeAssert\ClientHadAppointmentWithEmployee]
 class Rating
 {
     #[ORM\Id]
