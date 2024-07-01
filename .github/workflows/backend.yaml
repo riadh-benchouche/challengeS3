@@ -45,7 +45,6 @@ jobs:
           docker ps
           while ! curl -s http://localhost:80 > /dev/null; do
             echo "Waiting for the service to start..."
-            docker ps
             sleep 5
           done
 
