@@ -9,7 +9,7 @@ const clientRoutes: RouteObject[] = [
         element: getLayout(<MyBookings/>, false, true, false, false)
     },
     {
-        path: "/providers/:providerId/establishments/:establishmentId/book",
+        path: "/companies/:companyId/establishments/:establishmentId/book",
         element: getLayout(<Appointments/>, false, true, false, false)
     }
 ]

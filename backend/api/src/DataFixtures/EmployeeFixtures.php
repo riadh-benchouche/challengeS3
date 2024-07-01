@@ -17,8 +17,8 @@ class EmployeeFixtures extends Fixture implements DependentFixtureInterface
     {
         $this->passwordHasher = $passwordHasher;
     }
-    
-    public function getDependencies()
+
+    public function getDependencies(): array
     {
         return [
             EstablishmentFixtures::class,
@@ -27,52 +27,18 @@ class EmployeeFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $employeesData = [
-            [
-                'firstName' => 'John',
-                'lastName' => 'Doe',
-                'email' => 'john.doe@example.com',
-                'category' => 'Web developer',
-                'reference' => "john-doe",
-                'establishmentReference' => "establishment-1",
-            ],
-            [
-                'firstName' => 'Jane',
-                'lastName' => 'Smith',
-                'email' => 'jane.smith@example.com',
-                'category' => 'Designer',
-                'reference' => "jane-smith",
-                'establishmentReference' => "establishment-2",
-            ],
-            [
-                'firstName' => 'Robert',
-                'lastName' => 'Brown',
-                'email' => 'robert.brown@example.com',
-                'category' => 'Digital Marketing Specialist',
-                'reference' => "robert-brown",
-                'establishmentReference' => "establishment-3",
-            ],
-            [
-                'firstName' => 'Emily',
-                'lastName' => 'Jones',
-                'email' => 'emily.jones@example.com',
-                'category' => 'Professional content writing',
-                'reference' => "emily-jones",
-                'establishmentReference' => "establishment-4",
-            ],
-        ];
-
-        foreach ($employeesData as $data) {
+        $faker = \Faker\Factory::create('fr_FR');
+        for ($i = 1; $i < 11; $i++) {
+            $establishment = $this->getReference('establishment_' . $faker->numberBetween(1, 10));
             $employee = new Employee();
-            $employee->setFirstname($data['firstName']);
-            $employee->setLastname($data['lastName']);
-            $employee->setEmail($data['email']);
-            $employee->setCategory($data['category']);
-            $employee->setEstablishment($this->getReference($data['establishmentReference']));
-            $employee->setPassword($this->passwordHasher->hashPassword($employee, 'test'));
-
-            $this->addReference($data['reference'], $employee);
+            $employee->setFirstname($faker->firstName);
+            $employee->setLastname($faker->lastName);
+            $employee->setEmail($faker->email);
+            $employee->setCategory($faker->randomElement(['manager', 'employee']));
+            $employee->setEstablishment($establishment);
+            $employee->setPassword($this->passwordHasher->hashPassword($employee, 'password'));
             $manager->persist($employee);
+            $this->addReference('employee_' . $i, $employee);
         }
 
         $manager->flush();

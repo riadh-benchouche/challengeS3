@@ -21,20 +21,18 @@ class AppointmentFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $faker = \Faker\Factory::create();
-        $user1 = $this->getReference('user1@example.com');
-        $user2 = $this->getReference('user2@example.com');
-        $webDevelopmentService = $this->getReference('web-development');
-        $graphicDesignService = $this->getReference('graphic-design');
+        $faker = \Faker\Factory::create('fr_FR');
 
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 11; $i++) {
+            $user = $this->getReference('user_' . $faker->numberBetween(1, 10));
+            $service = $this->getReference('service_' . $faker->numberBetween(1, 10));
             $appointment = new Appointment();
             $appointment->setBeginning($faker->randomElement(['9', '13']));
             $appointment->setDuration($faker->numberBetween(1, 4));
             $appointment->setStatus($faker->randomElement(['Booked', 'Confirmed', 'Cancelled']));
             $appointment->setReservationDate($faker->dateTimeBetween('-1 month', '+1 month'));
-            $appointment->setBookedBy($faker->randomElement([$user1, $user2]));
-            $appointment->setService($faker->randomElement([$webDevelopmentService, $graphicDesignService]));
+            $appointment->setBookedBy($user);
+            $appointment->setService($service);
             $manager->persist($appointment);
         }
 

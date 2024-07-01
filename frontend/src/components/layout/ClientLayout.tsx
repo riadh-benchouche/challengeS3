@@ -38,12 +38,12 @@ export default function GuestLayout({children}: { children: React.ReactNode }) {
     useEffect(() => {
         if (Object.values(roles).includes("ROLE_CLIENT")) {
             setNavigation([
-                {name: 'Préstataires', href: '/providers'},
+                {name: 'Préstataires', href: '/companies'},
                 {name: 'Mes réservations', href: '/bookings'},
             ]);
         } else {
             setNavigation([
-                {name: 'Préstataires', href: '/providers'},
+                {name: 'Préstataires', href: '/companies'},
             ]);
         }
     }, [roles]);

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\DataFixtures;
 
 use App\Entity\User;
@@ -17,22 +18,16 @@ class UserFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $user1 = new User();
-        $user1->setFirstname('John');
-        $user1->setLastname('Doe');
-        $user1->setEmail('user1@example.com');
-        // $user1->setPassword("test");
-        $user1->setPassword($this->passwordHasher->hashPassword($user1, 'test'));
-        $this->addReference('user1@example.com', $user1);
-        $manager->persist($user1);
-
-        $user2 = new User();
-        $user2->setFirstname('Jack');
-        $user2->setLastname('Paul');
-        $user2->setEmail('user2@example.com');
-        $user2->setPassword($this->passwordHasher->hashPassword($user2, 'password2'));
-        $this->addReference('user2@example.com', $user2);
-        $manager->persist($user2);
+        $faker = \Faker\Factory::create('fr_FR');
+        for ($i = 1; $i < 11; $i++) {
+            $user = new User();
+            $user->setFirstname($faker->firstName);
+            $user->setLastname($faker->lastName);
+            $user->setEmail($faker->email);
+            $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
+            $manager->persist($user);
+            $this->addReference('user_' . $i, $user);
+        }
 
         $manager->flush();
     }

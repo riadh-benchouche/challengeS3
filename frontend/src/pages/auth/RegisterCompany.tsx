@@ -25,7 +25,7 @@ export default function RegisterCompany() {
         if (kbisFile) {
             formData.append('kbisFile', kbisFile)
         }
-        axiosInstance.post('/companies', formData).then(() => {
+        axiosInstance.post('/api/companies', formData).then(() => {
             navigate('/login')
         }).catch(e => {
             console.error(e)

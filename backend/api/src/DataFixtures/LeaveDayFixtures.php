@@ -10,7 +10,7 @@ use DateTime;
 
 class LeaveDayFixtures extends Fixture implements DependentFixtureInterface
 {
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             EmployeeFixtures::class,
@@ -19,19 +19,16 @@ class LeaveDayFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        $employee1 = $this->getReference('john-doe');
+        $faker = \Faker\Factory::create('fr_FR');
+        for ($i = 1; $i < 101; $i++) {
+            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10));
 
-        $leaveDay1 = new LeaveDay();
-        $leaveDay1->setDayOff(new DateTime('2024-07-01'));
-        $leaveDay1->setReason('Annual leave');
-        $leaveDay1->setEmployee($employee1);
-        $manager->persist($leaveDay1);
-
-        $leaveDay2 = new LeaveDay();
-        $leaveDay2->setDayOff(new DateTime('2024-07-02'));
-        $leaveDay2->setReason('Medical leave');
-        $leaveDay2->setEmployee($employee1);
-        $manager->persist($leaveDay2);
+            $leaveDay = new LeaveDay();
+            $leaveDay->setDayOff($faker->dateTimeBetween('-1 years', 'now'));
+            $leaveDay->setReason($faker->sentence(6, true));
+            $leaveDay->setEmployee($employee);
+            $manager->persist($leaveDay);
+        }
 
         $manager->flush();
     }

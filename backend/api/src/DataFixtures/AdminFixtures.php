@@ -17,11 +17,13 @@ class AdminFixtures extends Fixture
     }
     public function load(ObjectManager $manager): void
     {
-        $admin = new Admin();
-        $admin->setEmail("admin-test@test.com");
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, "test"));
-
-        $manager->persist($admin);
+        $faker = \Faker\Factory::create('fr_FR');
+        for ($i = 1; $i < 6; $i++) {
+            $admin = new Admin();
+            $admin->setEmail($faker->email);
+            $admin->setPassword($this->passwordHasher->hashPassword($admin, 'password'));
+            $manager->persist($admin);
+        }
         $manager->flush();
     }
 }

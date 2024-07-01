@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {Label, Listbox, ListboxButton, ListboxOption, ListboxOptions, Transition} from '@headlessui/react'
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/20/solid'
 import Button from "@/components/Button.tsx";
@@ -6,6 +6,8 @@ import Calendar from "@/components/Calendar.tsx";
 import Input from "@/components/Input.tsx";
 import {format} from 'date-fns';
 import axiosInstance from "@/utils/axiosInstance.ts";
+import {EstablishmentType} from "@/types/establishment.ts";
+import {useLocation} from "react-router-dom";
 
 const services = [
     {id: 1, name: 'Service 1'},
@@ -25,6 +27,20 @@ function classNames(...classes: string[]) {
 }
 
 export default function Appointments() {
+    const [establishment, setEstablishment] = useState<EstablishmentType | null>(null);
+
+    const location = useLocation();
+    const id = location.pathname.split('/')[4];
+
+    useEffect(() => {
+        axiosInstance.get('/api/establishments/' + id)
+            .then((res) => {
+                setEstablishment(res.data);
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }, [id]);
 
     const [error, setError] = useState<string | null>(null)
     const [selectedService, setSelectedService] = useState(services[0])
@@ -58,8 +74,9 @@ export default function Appointments() {
                 <div className="mx-auto max-w-7xl px-6 lg:px-8">
                     <div className="mx-auto max-w-2xl lg:mx-0">
                         <p className="text-base font-semibold leading-7 text-primary-600">Prenez rendez-vous</p>
-                        <h2 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">Octopus IT
-                            Solutions - Paris</h2>
+                        <h2 className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+                            {establishment?.name}
+                        </h2>
                         <p className="mt-6 text-lg leading-8 text-gray-600">
                             Merci de choisir un créneau horaire pour votre rendez-vous. Nous vous contacterons pour
                             confirmer votre rendez-vous.

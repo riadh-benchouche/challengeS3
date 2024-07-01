@@ -15,7 +15,7 @@ export default function Register() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        axiosInstance.post('/users', {firstName, lastName, email, plainPassword}).then(() => {
+        axiosInstance.post('/api/users', {firstName, lastName, email, plainPassword}).then(() => {
             navigate('/login')
         }).catch(e => {
             console.error(e)

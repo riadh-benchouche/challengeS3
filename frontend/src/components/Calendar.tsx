@@ -17,25 +17,14 @@ export default function Calendar({date, setDate}: { date: Date | null, setDate: 
     const daysOfWeek = Array.from({length: 7}, (_, i) => addDays(currentWeekStart, i));
     const now = new Date();
 
-    const isMorningDisabled = (day: Date) => {
+    const isSlotDisabled = (day: Date, _startHour: number, endHour: number) => {
         const currentHour = now.getHours();
-        return isBefore(day, now) || (format(day, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd') && currentHour >= 7);
+        return isBefore(day, now) || (format(day, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd') && currentHour >= endHour);
     };
 
-    const isAfternoonDisabled = (day: Date) => {
-        const currentHour = now.getHours();
-        return isBefore(day, now) || (format(day, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd') && currentHour >= 12);
-    };
-
-    const handleMorningClick = (day: Date) => {
+    const handleSlotClick = (day: Date, hour: number) => {
         const selectedDate = new Date(day);
-        selectedDate.setHours(9);
-        setDate(selectedDate);
-    };
-
-    const handleAfternoonClick = (day: Date) => {
-        const selectedDate = new Date(day);
-        selectedDate.setHours(13);
+        selectedDate.setHours(hour);
         setDate(selectedDate);
     };
 
@@ -75,30 +64,60 @@ export default function Calendar({date, setDate}: { date: Date | null, setDate: 
                             className={`border p-4 rounded-lg shadow-lg ${isDayInPast ? 'bg-gray-200' : 'bg-white'}`}
                         >
                             <div className={`text-base ${isDayInPast ? 'text-gray-500' : ''}`}>
-                                {format(day, 'eeee dd/MM', {locale: fr})}
+                                {format(day, 'eeee dd MMMM', {locale: fr})}
                             </div>
                             <div className="mt-4 flex flex-col space-y-2">
                                 <button
-                                    onClick={() => handleMorningClick(day)}
+                                    onClick={() => handleSlotClick(day, 8)}
                                     type="button"
-                                    disabled={isMorningDisabled(day)}
+                                    disabled={isSlotDisabled(day, 8, 10)}
                                     className={`${
-                                        isMorningDisabled(day) ? 'bg-gray-400 cursor-not-allowed' :
+                                        isSlotDisabled(day, 8, 10) ? 'bg-gray-400 cursor-not-allowed' :
                                             isSelectedDate(day, 8) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
                                     } text-white px-3 py-2 rounded-md shadow transition duration-300`}
                                 >
-                                    Matin
+                                    8:00 - 10:00
                                 </button>
                                 <button
-                                    onClick={() => handleAfternoonClick(day)}
+                                    onClick={() => handleSlotClick(day, 10)}
                                     type="button"
-                                    disabled={isAfternoonDisabled(day)}
+                                    disabled={isSlotDisabled(day, 10, 12)}
                                     className={`${
-                                        isAfternoonDisabled(day) ? 'bg-gray-400 cursor-not-allowed' :
+                                        isSlotDisabled(day, 10, 12) ? 'bg-gray-400 cursor-not-allowed' :
+                                            isSelectedDate(day, 10) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
+                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
+                                >
+                                    10:00 - 12:00
+                                </button>
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                        <div className="w-full border-t border-gray-300"/>
+                                    </div>
+                                    <div className="relative flex justify-center">
+                                        <span className="bg-white px-2 text-sm text-gray-500">Pause</span>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleSlotClick(day, 14)}
+                                    type="button"
+                                    disabled={isSlotDisabled(day, 14, 16)}
+                                    className={`${
+                                        isSlotDisabled(day, 14, 16) ? 'bg-gray-400 cursor-not-allowed' :
                                             isSelectedDate(day, 14) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
                                     } text-white px-3 py-2 rounded-md shadow transition duration-300`}
                                 >
-                                    Après-midi
+                                    14:00 - 16:00
+                                </button>
+                                <button
+                                    onClick={() => handleSlotClick(day, 16)}
+                                    type="button"
+                                    disabled={isSlotDisabled(day, 16, 18)}
+                                    className={`${
+                                        isSlotDisabled(day, 16, 18) ? 'bg-gray-400 cursor-not-allowed' :
+                                            isSelectedDate(day, 16) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
+                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
+                                >
+                                    16:00 - 18:00
                                 </button>
                             </div>
                         </div>

@@ -1,8 +1,8 @@
 import {RouteObject} from "react-router-dom";
 import {getLayout} from "@/routes/getLayout.tsx";
 import Home from "@/pages/guest/Home.tsx";
-import Providers from "@/pages/guest/Providers.tsx";
-import ProviderDetails from "@/pages/guest/ProviderDetails.tsx";
+import Companies from "@/pages/guest/Companies.tsx";
+import CompanyDetails from "@/pages/guest/CompanyDetails.tsx";
 import Establishment from "@/pages/guest/Establishment.tsx";
 
 const guestRoutes: RouteObject[] = [
@@ -11,15 +11,15 @@ const guestRoutes: RouteObject[] = [
         element: getLayout(<Home/>)
     },
     {
-        path: "/providers",
-        element: getLayout(<Providers/>)
+        path: "/companies",
+        element: getLayout(<Companies/>)
     },
     {
-        path: "/providers/:providerId",
-        element: getLayout(<ProviderDetails/>)
+        path: "/companies/:companyId",
+        element: getLayout(<CompanyDetails/>)
     },
     {
-        path: "/providers/:providerId/establishments/:establishmentId",
+        path: "/companies/:companyId/establishments/:establishmentId",
         element: getLayout(<Establishment/>)
     }
 ]
