@@ -15,9 +15,9 @@ export default function Table({
                                       title: string,
                                       description: string,
                                       columns: { key: string, name: string }[]
-                                      rows: { [key: string]: string }[]
+                                      rows: { [key: string]: string }[],
                                       buttonLabel: string,
-                                      onEdit: Dispatch<SetStateAction<boolean>>
+                                      onEdit: Dispatch<SetStateAction<{ [key: string]: string }>>
                                       onAdd: Dispatch<SetStateAction<boolean>>
                                       hrefView?: string
                                       showView?: boolean
@@ -50,7 +50,8 @@ export default function Table({
                                     <thead className="bg-gray-50">
                                     <tr>
                                         {columns.map((column) => (
-                                            <th scope="col"
+                                            <th key={column.key}
+                                                scope="col"
                                                 className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
                                                 {column.name}
                                             </th>
@@ -67,13 +68,14 @@ export default function Table({
                                     {rows.map((row) => (
                                         <tr key={row[columns[0].key]}>
                                             {columns.map((column) => (
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                <td key={row[column.key]}
+                                                    className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                                                     {row[column.key]}
                                                 </td>
                                             ))}
                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
                                                 <button
-                                                    onClick={() => onEdit(true)}
+                                                    onClick={() => onEdit(row)}
                                                     className="text-primary-600 hover:text-primary-900">
                                                     Modifier<span className="sr-only">, {row.name}</span>
                                                 </button>
