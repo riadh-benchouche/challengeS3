@@ -1,47 +1,46 @@
 import SideBarModal from "@/components/SideBarModal.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import CompanyForm from "@/pages/admin/forms/CompanyForm.tsx";
 import Table from "@/components/Table.tsx";
+import axiosInstance from "@/utils/axiosInstance";
+import {Company} from "@/types/company.ts";
 
-const companies = [
-    {
-        name: "ABC Développement",
-        kbis: "2019B01234",
-        status: "Actif",
-        date_creation: "2019-01-15"
-    },
-    {
-        name: "Techno Solutions",
-        kbis: "2018C05678",
-        status: "Actif",
-        date_creation: "2018-10-10"
-    },
-    {
-        name: "Éco Vert",
-        kbis: "2020D03456",
-        status: "En Attente",
-        date_creation: "2020-03-05"
-    }
-]
 export default function Companies() {
     const [openCreate, setOpenCreate] = useState(false)
+    const [selectedCompany, setSelectedCompany] = useState({} as any)
+    const [companies, setCompanies] = useState([])
+
+    useEffect(() => {
+        axiosInstance.get('/api/companies').then(res => {
+            setCompanies(res.data['hydra:member'])
+        })
+    }, [openCreate])
+
+    const openEdit = (company: Company) => {
+        setSelectedCompany(company)
+        setOpenCreate(true)
+    }
     return (
         <>
             <SideBarModal open={openCreate} setOpen={setOpenCreate} title="Ajouter une entreprise"
-                          description="Ajoutez une nouvelle entreprise"
-                          handleSubmit={(e) => e.preventDefault()}>
-                <CompanyForm type="create"/>
+                          description="Ajoutez une nouvelle entreprise">
+                <CompanyForm type={selectedCompany ? 'edit' : 'create'}
+                                   company={selectedCompany ? selectedCompany : undefined}
+                                   onClose={() => setOpenCreate(false)}/>
             </SideBarModal>
             <Table title="Entreprises"
                    description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
                    columns={[
                        {key: 'name', name: 'Nom'},
-                       {key: 'kbis', name: 'Kbis'},
+                       {key: 'email', name: 'Email'},
+                       {key: 'country', name: 'Pays'},
                        {key: 'status', name: 'Statut'},
-                       {key: 'date_creation', name: 'Date de création'},
+                       {key: 'foundationDate', name: 'Date de création'},
                    ]}
                    rows={companies}
-                   onEdit={() => setOpenCreate(true)}
+                   onEdit={(company: unknown | Company) => {
+                       openEdit(company as Company)
+                   }}
                    onAdd={() => setOpenCreate(true)}
                    buttonLabel="Ajouter une entreprise"
             />
