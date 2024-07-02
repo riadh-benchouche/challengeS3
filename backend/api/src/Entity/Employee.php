@@ -25,7 +25,7 @@ use ApiPlatform\Metadata\Delete;
             denormalizationContext: ['groups' => 'employee:create'],
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId()
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
             ",
             validationContext: ['groups' => 'employee:create'],
         ),
@@ -56,12 +56,6 @@ class Employee
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $password = null;
-
-    #[Assert\Length(min: 4)]
-    private ?string $plainPassword = null;
-
-    #[ORM\Column(length: 255)]
     #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $firstName = null;
 
@@ -84,12 +78,6 @@ class Employee
     #[Groups(['employee:read'])]
     private Collection $ratings;
 
-    /**
-     * @var Collection<int, Service>
-     */
-    #[ORM\ManyToMany(targetEntity: Service::class, inversedBy: 'employees')]
-    #[Groups(['employee:read', 'service:read', 'employee:create', 'employee:update'])]
-    private Collection $services;
 
     /**
      * @var Collection<int, WorkSchedule>
@@ -106,14 +94,17 @@ class Employee
     private Collection $leaveDays;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['employee:read', 'employee:create', 'employee:update'])]
+    #[Groups(['employee:read', 'employee:update'])]
     #[Assert\Url]
     private ?string $image = null;
+
+    #[ORM\ManyToOne(inversedBy: 'employees')]
+    #[Groups(['employee:read', 'service:read', 'employee:create', 'employee:update'])]
+    private ?Service $service = null;
 
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
-        $this->services = new ArrayCollection();
         $this->workSchedules = new ArrayCollection();
         $this->leaveDays = new ArrayCollection();
     }
@@ -214,32 +205,6 @@ class Employee
     }
 
     /**
-     * @return Collection<int, Service>
-     */
-    public function getServices(): Collection
-    {
-        return $this->services;
-    }
-
-    public function addService(Service $service): static
-    {
-        if (!$this->services->contains($service)) {
-            $this->services->add($service);
-            $service->setEmployee($this);
-        }
-
-        return $this;
-    }
-
-    public function removeService(Service $service): static
-    {
-        if ($this->services->removeElement($service)) {
-            $service->removeEmployee($this);
-        }
-        return $this;
-    }
-
-    /**
      * @return Collection<int, WorkSchedule>
      */
     public function getWorkSchedules(): Collection
@@ -307,6 +272,18 @@ class Employee
     public function setImage(?string $image): static
     {
         $this->image = $image;
+
+        return $this;
+    }
+
+    public function getService(): ?Service
+    {
+        return $this->service;
+    }
+
+    public function setService(?Service $service): static
+    {
+        $this->service = $service;
 
         return $this;
     }

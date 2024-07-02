@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20240701145555 extends AbstractMigration
+final class Version20240702114402 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -36,8 +36,9 @@ final class Version20240701145555 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_FE38F844ED5CA9E6 ON appointment (service_id)');
         $this->addSql('CREATE INDEX IDX_FE38F8448C03F15C ON appointment (employee_id)');
         $this->addSql('CREATE TABLE company (id INT NOT NULL, name VARCHAR(255) NOT NULL, kbis VARCHAR(255) NOT NULL, foundation_date DATE DEFAULT NULL, country VARCHAR(255) DEFAULT NULL, description TEXT DEFAULT NULL, raised VARCHAR(255) DEFAULT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, status VARCHAR(255) NOT NULL, image VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
-        $this->addSql('CREATE TABLE employee (id INT NOT NULL, establishment_id INT DEFAULT NULL, email VARCHAR(255) NOT NULL, password VARCHAR(255) NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, category VARCHAR(255) NOT NULL, image VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
+        $this->addSql('CREATE TABLE employee (id INT NOT NULL, establishment_id INT DEFAULT NULL, service_id INT DEFAULT NULL, email VARCHAR(255) NOT NULL, first_name VARCHAR(255) NOT NULL, last_name VARCHAR(255) NOT NULL, category VARCHAR(255) NOT NULL, image VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE INDEX IDX_5D9F75A18565851 ON employee (establishment_id)');
+        $this->addSql('CREATE INDEX IDX_5D9F75A1ED5CA9E6 ON employee (service_id)');
         $this->addSql('CREATE TABLE employee_service (employee_id INT NOT NULL, service_id INT NOT NULL, PRIMARY KEY(employee_id, service_id))');
         $this->addSql('CREATE INDEX IDX_61D1CCDD8C03F15C ON employee_service (employee_id)');
         $this->addSql('CREATE INDEX IDX_61D1CCDDED5CA9E6 ON employee_service (service_id)');
@@ -57,6 +58,7 @@ final class Version20240701145555 extends AbstractMigration
         $this->addSql('ALTER TABLE appointment ADD CONSTRAINT FK_FE38F844ED5CA9E6 FOREIGN KEY (service_id) REFERENCES service (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE appointment ADD CONSTRAINT FK_FE38F8448C03F15C FOREIGN KEY (employee_id) REFERENCES employee (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE employee ADD CONSTRAINT FK_5D9F75A18565851 FOREIGN KEY (establishment_id) REFERENCES establishment (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
+        $this->addSql('ALTER TABLE employee ADD CONSTRAINT FK_5D9F75A1ED5CA9E6 FOREIGN KEY (service_id) REFERENCES service (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE employee_service ADD CONSTRAINT FK_61D1CCDD8C03F15C FOREIGN KEY (employee_id) REFERENCES employee (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE employee_service ADD CONSTRAINT FK_61D1CCDDED5CA9E6 FOREIGN KEY (service_id) REFERENCES service (id) ON DELETE CASCADE NOT DEFERRABLE INITIALLY IMMEDIATE');
         $this->addSql('ALTER TABLE establishment ADD CONSTRAINT FK_DBEFB1EE979B1AD6 FOREIGN KEY (company_id) REFERENCES company (id) NOT DEFERRABLE INITIALLY IMMEDIATE');
@@ -85,6 +87,7 @@ final class Version20240701145555 extends AbstractMigration
         $this->addSql('ALTER TABLE appointment DROP CONSTRAINT FK_FE38F844ED5CA9E6');
         $this->addSql('ALTER TABLE appointment DROP CONSTRAINT FK_FE38F8448C03F15C');
         $this->addSql('ALTER TABLE employee DROP CONSTRAINT FK_5D9F75A18565851');
+        $this->addSql('ALTER TABLE employee DROP CONSTRAINT FK_5D9F75A1ED5CA9E6');
         $this->addSql('ALTER TABLE employee_service DROP CONSTRAINT FK_61D1CCDD8C03F15C');
         $this->addSql('ALTER TABLE employee_service DROP CONSTRAINT FK_61D1CCDDED5CA9E6');
         $this->addSql('ALTER TABLE establishment DROP CONSTRAINT FK_DBEFB1EE979B1AD6');

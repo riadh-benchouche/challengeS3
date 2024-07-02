@@ -4,17 +4,12 @@ security:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
         App\Entity\User: 'auto'
         App\Entity\Company: 'auto'
-        App\Entity\Employee: 'auto'
         App\Entity\Admin: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
         user:
             entity:
                 class: App\Entity\User
-                property: email
-        employee:
-            entity:
-                class: App\Entity\Employee
                 property: email
         company:
             entity:
@@ -26,7 +21,7 @@ security:
                 property: email
         users:
             chain:
-                providers: ['user', 'employee', 'company', 'admin']
+                providers: ['user', 'company', 'admin']
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/

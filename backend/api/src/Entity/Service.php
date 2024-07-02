@@ -67,13 +67,6 @@ class Service
     #[Groups(['employee:read', 'user:read', 'service:update', 'service:create', 'appointment:read'])]
     private ?int $price = null;
 
-    /**
-     * @var Collection<int, Employee>
-     */
-    #[ORM\ManyToMany(targetEntity: Employee::class, mappedBy: 'services')]
-    #[Groups(['service:read', 'employee:read'])]
-    private Collection $employees;
-
     #[ORM\ManyToOne(inversedBy: 'services')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['service:read', 'service:create', 'service:update'])]
@@ -86,10 +79,19 @@ class Service
     #[Groups(['establishment:read', 'employee:read', 'company:read'])]
     private Collection $appointments;
 
+    /**
+     * @var Collection<int, Employee>
+     */
+    #[ORM\OneToMany(mappedBy: 'service', targetEntity: Employee::class)]
+    #[Groups(['service:read', 'employee:read'])]
+    private Collection $employees;
+
+
+
     public function __construct()
     {
-        $this->employees = new ArrayCollection();
         $this->appointments = new ArrayCollection();
+        $this->employees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -157,32 +159,6 @@ class Service
         return $this;
     }
 
-    /**
-     * @return Collection<int, Employee>
-     */
-    public function getEmployees(): Collection
-    {
-        return $this->employees;
-    }
-
-    public function addEmployee(Employee $employee): static
-    {
-        if (!$this->employees->contains($employee)) {
-            $this->employees->add($employee);
-            $employee->addService($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEmployee(Employee $employee): static
-    {
-        if ($this->employees->removeElement($employee)) {
-            $employee->removeService($this);
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Appointment>
@@ -208,6 +184,36 @@ class Service
             // set the owning side to null (unless already changed)
             if ($appointment->getService() === $this) {
                 $appointment->setService(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Employee>
+     */
+    public function getEmployees(): Collection
+    {
+        return $this->employees;
+    }
+
+    public function addEmployee(Employee $employee): static
+    {
+        if (!$this->employees->contains($employee)) {
+            $this->employees->add($employee);
+            $employee->setService($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmployee(Employee $employee): static
+    {
+        if ($this->employees->removeElement($employee)) {
+            // set the owning side to null (unless already changed)
+            if ($employee->getService() === $this) {
+                $employee->setService(null);
             }
         }
 

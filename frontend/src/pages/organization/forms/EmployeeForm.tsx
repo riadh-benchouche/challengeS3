@@ -16,7 +16,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
     const [lastName, setLastName] = useState<string>('')
     const [email, setEmail] = useState<string>('')
     const [category, setCategory] = useState<string>('')
-    const [services, setServices] = useState<string[]>([])
+    const [service, setService] = useState<string>('')
     const location = useLocation()
     const establishmentId = location.pathname.split("/").pop()
 
@@ -37,7 +37,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                 lastName,
                 email,
                 category,
-                services
+                service
             }).then(() => {
                 setClose()
             }).catch(err => {
@@ -51,7 +51,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                 lastName,
                 email,
                 category,
-                services
+                service
             }).then(() => {
                 setClose()
             }).catch(err => {
@@ -111,21 +111,21 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                                     </div>
                                     <div>
                                         <div>
-                                            <label htmlFor="services"
+                                            <label htmlFor="service"
                                                    className="block text-sm font-medium leading-6 text-gray-900">
-                                                Services
+                                                Service
                                             </label>
                                             <select
-                                                id="services"
-                                                name="services"
-                                                multiple
-                                                value={services}
-                                                onChange={(e) => setServices(Array.from(e.target.selectedOptions, option => option.value))}
+                                                id="service"
+                                                name="service"
+                                                value={service}
+                                                onChange={(e) => setService(e.target.value)}
                                                 className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                             >
-                                                {servicesList.map(service => (
-                                                    <option key={service.id}
-                                                            value={'/api/services/' + service.id}>{service.name}</option>
+                                                <option value="">Choisir un service</option>
+                                                {servicesList.map(s => (
+                                                    <option key={s.id}
+                                                            value={'/api/services/' + s.id}>{s.name}</option>
                                                 ))}
                                             </select>
                                         </div>
