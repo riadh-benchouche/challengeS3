@@ -32,12 +32,16 @@ const OrganizationNavigation = [
 ]
 
 const userNavigation = [
-    {name: 'Your profile', href: '#'},
-    {name: 'Sign out', href: '#'},
+    {name: 'Profile', href: '#'},
 ]
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "/login";
 }
 
 export default function AdminLayout({children, role}: { children: React.ReactNode, role: string }) {
@@ -224,6 +228,19 @@ export default function AdminLayout({children, role}: { children: React.ReactNod
                                                     )}
                                                 </MenuItem>
                                             ))}
+                                            <MenuItem>
+                                                {({focus}) => (
+                                                    <button
+                                                        onClick={logout}
+                                                        className={classNames(
+                                                            focus ? 'bg-gray-50' : '',
+                                                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                                        )}
+                                                    >
+                                                        Déconnexion
+                                                    </button>
+                                                )}
+                                            </MenuItem>
                                         </MenuItems>
                                     </Transition>
                                 </Menu>
