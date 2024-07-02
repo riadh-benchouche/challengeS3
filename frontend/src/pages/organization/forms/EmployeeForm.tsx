@@ -37,6 +37,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                 lastName,
                 email,
                 category,
+                services
             }).then(() => {
                 setClose()
             }).catch(err => {
@@ -50,6 +51,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                 lastName,
                 email,
                 category,
+                services
             }).then(() => {
                 setClose()
             }).catch(err => {

@@ -66,7 +66,7 @@ export default function Table({
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 bg-white">
                                     {rows.map((row) => (
-                                        <tr key={row[columns[0].key]}>
+                                        <tr key={row.id}>
                                             {columns.map((column) => (
                                                 <td key={row[column.key]}
                                                     className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
@@ -80,7 +80,7 @@ export default function Table({
                                                     Modifier<span className="sr-only">, {row.name}</span>
                                                 </button>
                                                 {(showView && hrefView) && <a
-                                                    href={hrefView + '1'}
+                                                    href={hrefView + row.id}
                                                     className="text-primary-600 hover:text-primary-900">
                                                     Voir<span className="sr-only">, {row.name}</span>
                                                 </a>}
