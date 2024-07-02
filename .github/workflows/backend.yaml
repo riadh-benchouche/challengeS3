@@ -47,7 +47,7 @@ jobs:
       -
         name: Check API reachability
         working-directory: backend
-        run: curl -vk --fail-with-body https://localhost
+        run: curl -vk --fail-with-body http://localhost
       -
         name: Create test database
         working-directory: backend
