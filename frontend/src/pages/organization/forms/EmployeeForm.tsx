@@ -1,5 +1,5 @@
 import Input from "@/components/Input.tsx";
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import Button from "@/components/Button.tsx";
 import axiosInstance from "@/utils/axiosInstance.ts";
 import {useLocation} from "react-router-dom";
@@ -26,6 +26,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
             setLastName(employee.lastName)
             setEmail(employee.email)
             setCategory(employee.category)
+            setService('/api/services/' + employee.service.id)
         }
     }, [employee])
     const handleSubmit = (e: React.FormEvent) => {
@@ -37,7 +38,7 @@ export default function EmployeeForm({type = 'create', setClose, employee, servi
                 lastName,
                 email,
                 category,
-                service
+                service,
             }).then(() => {
                 setClose()
             }).catch(err => {

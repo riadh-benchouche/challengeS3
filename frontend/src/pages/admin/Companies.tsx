@@ -7,7 +7,7 @@ import {Company} from "@/types/company.ts";
 
 export default function Companies() {
     const [openCreate, setOpenCreate] = useState(false)
-    const [selectedCompany, setSelectedCompany] = useState({} as any)
+    const [selectedCompany, setSelectedCompany] = useState<Company | undefined>(undefined)
     const [companies, setCompanies] = useState([])
 
     useEffect(() => {
@@ -25,12 +25,13 @@ export default function Companies() {
             <SideBarModal open={openCreate} setOpen={setOpenCreate} title="Ajouter une entreprise"
                           description="Ajoutez une nouvelle entreprise">
                 <CompanyForm type={selectedCompany ? 'edit' : 'create'}
-                                   company={selectedCompany ? selectedCompany : undefined}
-                                   onClose={() => setOpenCreate(false)}/>
+                             company={selectedCompany ? selectedCompany : undefined}
+                             onClose={() => setOpenCreate(false)}/>
             </SideBarModal>
             <Table title="Entreprises"
                    description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
                    columns={[
+                       {key: 'image', name: 'Image'},
                        {key: 'name', name: 'Nom'},
                        {key: 'email', name: 'Email'},
                        {key: 'country', name: 'Pays'},

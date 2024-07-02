@@ -1,4 +1,5 @@
 import {Dispatch, SetStateAction} from "react";
+import Switcher from "@/components/Switcher.tsx";
 
 export default function Table({
                                   title,
@@ -8,6 +9,7 @@ export default function Table({
                                   buttonLabel,
                                   onEdit,
                                   onAdd,
+                                  onSchedule,
                                   hrefView,
                                   showView = true
                               }:
@@ -19,6 +21,7 @@ export default function Table({
                                       buttonLabel: string,
                                       onEdit: Dispatch<SetStateAction<{ [key: string]: string }>>
                                       onAdd: Dispatch<SetStateAction<boolean>>
+                                      onSchedule?: Dispatch<SetStateAction<{ [key: string]: string }>>
                                       hrefView?: string
                                       showView?: boolean
                                   }) {
@@ -68,10 +71,24 @@ export default function Table({
                                     {rows.map((row) => (
                                         <tr key={row.id}>
                                             {columns.map((column) => (
-                                                <td key={row[column.key]}
-                                                    className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                    {row[column.key]}
-                                                </td>
+                                                column.key === 'image' ?
+                                                    <td key={row[column.key]}
+                                                        className="py-2 pl-4">
+                                                        <img
+                                                            className="inline-block h-10 w-10 rounded-md"
+                                                            src={row[column.key]}
+                                                            alt=""
+                                                        />
+                                                    </td> : column.key === 'status' ?
+                                                        <td key={row[column.key]}
+                                                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                            <Switcher enabled={row[column.key] === 'ACTIVE'}/>
+                                                        </td>
+                                                        :
+                                                        <td key={row[column.key]}
+                                                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                            {row[column.key]}
+                                                        </td>
                                             ))}
                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
                                                 <button
@@ -79,6 +96,13 @@ export default function Table({
                                                     className="text-primary-600 hover:text-primary-900">
                                                     Modifier<span className="sr-only">, {row.name}</span>
                                                 </button>
+                                                {onSchedule &&
+                                                    <button
+                                                        onClick={() => onSchedule(row)}
+                                                        className="text-primary-600 hover:text-primary-900">
+                                                        Planifier<span className="sr-only">, {row.name}</span>
+                                                    </button>
+                                                }
                                                 {(showView && hrefView) && <a
                                                     href={hrefView + row.id}
                                                     className="text-primary-600 hover:text-primary-900">

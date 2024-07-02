@@ -1,9 +1,10 @@
 import Input from "@/components/Input.tsx";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import Switcher from "@/components/Switcher.tsx";
 import {PhotoIcon} from "@heroicons/react/16/solid";
 import {Company} from "@/types/company";
 import Button from "@/components/Button.tsx";
+import axiosInstance from "@/utils/axiosInstance.ts";
 
 export default function CompanyForm({type = 'create', company, onClose}: {
     type: string,
@@ -18,14 +19,49 @@ export default function CompanyForm({type = 'create', company, onClose}: {
     const [image, setImage] = useState<string>('')
     const [kbisFile, setKbisFile] = useState<File>()
 
+    useEffect(() => {
+        if (type === 'edit' && company) {
+            setName(company.name)
+            setStatus(company.status === 'ACTIVE')
+            setEmail(company.email)
+            setImage(company.image)
+        }
+    }, [type, company])
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (type === 'create') {
-
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('email', email)
+            formData.append('password', password)
+            formData.append('status', status ? 'ACTIVE' : 'PENDING')
+            formData.append('image', image)
+            if (kbisFile) {
+                formData.append('kbis', kbisFile)
+            }
+            console.log(formData)
+            axiosInstance.post('/api/companies', formData).then(() => {
+                onClose()
+            }).catch(err => {
+                console.log(err)
+            })
         }
 
         if (type === 'edit') {
-
+            const formData = new FormData()
+            formData.append('name', name)
+            formData.append('email', email)
+            formData.append('status', status ? 'ACTIVE' : 'PENDING')
+            formData.append('image', image)
+            if (kbisFile) {
+                formData.append('kbis', kbisFile)
+            }
+            axiosInstance.patch(`/api/companies/${company?.id}`, formData).then(() => {
+                onClose()
+            }).catch(err => {
+                console.log(err)
+            })
         }
     }
 
@@ -54,14 +90,16 @@ export default function CompanyForm({type = 'create', company, onClose}: {
                                         onChange={(e) => setEmail(e.target.value)}
                                         required={true}
                                     />
-                                    <Input
-                                        label="Mot de passe"
-                                        type="password"
-                                        placeholder="********"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        required={true}
-                                    />
+                                    {type === 'create' && (
+                                        <Input
+                                            label="Mot de passe"
+                                            type="password"
+                                            placeholder="********"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            required={true}
+                                        />
+                                    )}
                                     <Switcher
                                         title="Statut"
                                         description="Activez la société"

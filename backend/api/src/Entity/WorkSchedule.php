@@ -28,7 +28,7 @@ use App\Dto\WorkScheduleMultipleDto;
                 summary: 'Create multiple work schedules',
                 description: 'Create multiple work schedules in one request.'
             ),
-            securityPostDenormalize: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())",
+            securityPostDenormalize: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY'))",
         ),
         new Patch(
             security: "

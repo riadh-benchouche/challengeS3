@@ -7,6 +7,7 @@ import axiosInstance from "@/utils/axiosInstance.ts";
 import {Employee, Service} from "@/types/employe.ts";
 import {EstablishmentType} from "@/types/establishment.ts";
 import EmployeeForm from "@/pages/organization/forms/EmployeeForm.tsx";
+import EmployeeScheduleForm from "@/pages/organization/forms/EmployeeScheduleForm.tsx";
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
@@ -15,6 +16,7 @@ function classNames(...classes: string[]) {
 export default function EstablishmentDetail() {
     const [openCreateService, setOpenCreateService] = useState(false)
     const [openCreateEmployee, setOpenCreateEmployee] = useState(false)
+    const [openCreateSchedule, setOpenCreateSchedule] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
     const [selectedService, setSelectedService] = useState<Service | null>(null)
     const location = useLocation()
@@ -32,7 +34,9 @@ export default function EstablishmentDetail() {
         axiosInstance.get(`/api/establishments/${establishmentId}`).then(res => {
             setEstablishment(res.data)
             setServices(res.data.services)
-            setEmployees(res.data.employees)
+            setEmployees([...res.data.employees.map((e: Employee) => {
+                return {...e, serviceName: e.service.name}
+            })])
         })
     }, [establishmentId, openCreateService, openCreateEmployee])
 
@@ -66,6 +70,12 @@ export default function EstablishmentDetail() {
                               servicesList={services}
                               employee={selectedEmployee ? selectedEmployee : undefined}
                               setClose={() => setOpenCreateEmployee(false)}/>
+            </SideBarModal>
+            <SideBarModal open={openCreateSchedule} setOpen={setOpenCreateSchedule} title="Ajouter l'emloi du temps"
+                          description="Ajoutez un nouvel emploi du temps">
+                <EmployeeScheduleForm
+                    employee={selectedEmployee ? selectedEmployee : undefined}
+                    setClose={() => setOpenCreateEmployee(false)}/>
             </SideBarModal>
             <div className="px-4 sm:px-6 lg:px-8">
                 <div
@@ -132,12 +142,17 @@ export default function EstablishmentDetail() {
                         {key: 'firstName', name: 'Prénom'},
                         {key: 'lastName', name: 'Nom'},
                         {key: 'email', name: 'Email'},
+                        {key: 'serviceName', name: 'Service'},
                         {key: 'category', name: 'Catégorie'},
                     ]}
                     rows={employees as unknown as { [key: string]: string }[]}
                     buttonLabel="Ajouter un employé"
                     onEdit={(e: unknown | Employee) => {
                         openEditEmployee(e as Employee)
+                    }}
+                    onSchedule={(e: unknown | Employee) => {
+                        setSelectedEmployee(e as Employee)
+                        setOpenCreateSchedule(true)
                     }}
                     onAdd={() => setOpenCreateEmployee(true)}
                 />

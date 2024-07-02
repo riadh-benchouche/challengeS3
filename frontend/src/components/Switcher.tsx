@@ -6,22 +6,25 @@ function classNames(...classes: string[]) {
 
 export default function Switcher({enabled, setEnabled, title, description}: {
     enabled: boolean,
-    setEnabled: (enabled: boolean) => void,
+    setEnabled?: (enabled: boolean) => void,
     title?: string,
     description?: string
 }) {
     return (
         <Field as="div" className="flex items-center justify-between">
-          <span className="flex flex-col">
+            {title && description && (
+                <span className="flex flex-col">
             <Label as="span" className="text-sm font-medium leading-6 text-gray-900" passive>
-              {title || 'Statut'}
+              {title}
             </Label>
             <Description as="span" className="text-sm text-gray-500">
-              {description || 'Activez ou désactivez cette option.'}
+              {description}
             </Description>
           </span>
+            )}
             <Switch
                 checked={enabled}
+                disabled={!setEnabled}
                 onChange={setEnabled}
                 className={classNames(
                     enabled ? 'bg-primary-600' : 'bg-gray-200',
