@@ -12,6 +12,8 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Processor\WorkScheduleMultipleProcessor;
+use App\Dto\WorkScheduleMultipleDto;
 
 #[ORM\Entity(repositoryClass: WorkScheduleRepository::class)]
 #[ApiResource(
@@ -19,11 +21,14 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(),
         new GetCollection(),
         new Post(
-            securityPostDenormalize: "
-                is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
-            ",
-            denormalizationContext: ['groups' => 'work-schedule:create'],
+            uriTemplate: '/work_schedules/multiple',
+            input: WorkScheduleMultipleDto::class,
+            processor: WorkScheduleMultipleProcessor::class,
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                summary: 'Create multiple work schedules',
+                description: 'Create multiple work schedules in one request.'
+            ),
+            securityPostDenormalize: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())",
         ),
         new Patch(
             security: "
