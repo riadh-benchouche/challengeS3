@@ -102,11 +102,19 @@ class Employee
     #[Groups(['employee:read', 'service:read', 'employee:create', 'employee:update'])]
     private ?Service $service = null;
 
+    /**
+     * @var Collection<int, Appointment>
+     */
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Appointment::class)]
+    #[Groups(['employee:read'])]
+    private Collection $appointments;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
         $this->workSchedules = new ArrayCollection();
         $this->leaveDays = new ArrayCollection();
+        $this->appointments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -287,4 +295,35 @@ class Employee
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, Appointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(Appointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(Appointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment)) {
+            // set the owning side to null (unless already changed)
+            if ($appointment->getEmployee() === $this) {
+                $appointment->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+    
 }
