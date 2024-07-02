@@ -19,13 +19,52 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
     App\Listener\JWTListener:
         tags:
             - { name: 'kernel.event_listener', event: 'lexik_jwt_authentication.on_jwt_created', method: 'onJWTListener' }
 
+    api_platform.cache.metadata.property:
+        parent: cache.system
+        tags: [ cache.pool ]
+    api_platform.cache.metadata.resource:
+        parent: cache.system
+        tags: [ cache.pool ]
+    api_platform.cache.metadata.resource_collection:
+        parent: cache.system
+        tags: [ cache.pool ]
+    api_platform.cache.route_name_resolver:
+        parent: cache.system
+        tags: [ cache.pool ]
+    api_platform.cache.identifiers_extractor:
+        parent: cache.system
+        tags: [ cache.pool ]
+    api_platform.elasticsearch.cache.metadata.document:
+        parent: cache.system
+        tags: [ cache.pool ]
+        
     App\State\UserPasswordHasher:
         bind:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
-            
+
+    App\Validator\Constraints\UniqueEmailValidator:
+        tags: ['validator.constraint_validator']
+
+    App\Validator\Constraints\UniqueRatingValidator:
+        arguments:
+            $ratingRepository: '@App\Repository\RatingRepository'
+        tags:
+            - { name: validator.constraint_validator, alias: 'app.unique_rating' }
+    
+    App\Validator\Constraints\ClientHadAppointmentWithEmployeeValidator:
+        arguments:
+            $appointmentRepository: '@App\Repository\AppointmentRepository'
+        tags:
+            - { name: validator.constraint_validator, alias: 'app.client_had_appointment_with_employee' }
+
+    App\Serializer\CustomDateNormalizer:
+        tags: ['serializer.normalizer']
+
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

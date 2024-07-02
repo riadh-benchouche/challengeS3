@@ -9,5 +9,4 @@ export type UserToken = {
 export type RoleUser =
     | "ROLE_USER"
     | "ROLE_ADMIN"
-    | "ROLE_EMPLOYEE"
-    | "ROLE_ORGANIZATION"
+    | "ROLE_COMPANY"

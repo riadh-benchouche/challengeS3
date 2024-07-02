@@ -15,7 +15,7 @@ export default function Register() {
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        axiosInstance.post('/users', {firstName, lastName, email, plainPassword}).then(() => {
+        axiosInstance.post('/api/users', {firstName, lastName, email, plainPassword}).then(() => {
             navigate('/login')
         }).catch(e => {
             console.error(e)
@@ -24,7 +24,7 @@ export default function Register() {
     }
 
     return (
-        <div className="mx-auto w-full max-w-sm lg:w-96">
+        <div className="mx-auto flex flex-col flex-1 w-full max-w-sm lg:w-96">
             <div>
                 <img
                     className="h-10 w-auto"
@@ -60,7 +60,7 @@ export default function Register() {
                 </div>
             )}
 
-            <div className="mt-10">
+            <div className="mt-5">
                 <div>
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
@@ -106,6 +106,14 @@ export default function Register() {
                         </div>
                     </form>
                 </div>
+            </div>
+            <div className="mt-auto">
+                <p className="text-sm text-gray-500 text-center">
+                    Vous souhaitez ouvrir un compte ?{' '} <br/>
+                    <a href="/register-company" className="font-semibold text-primary-600 hover:text-primary-500">
+                        Crée un compte professionnel
+                    </a>{' '}
+                </p>
             </div>
         </div>
     )

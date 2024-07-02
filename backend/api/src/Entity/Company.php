@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\CompanyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,40 +10,124 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Validator\Constraints as AcmeAssert;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\GetCollection;
+use Symfony\Component\HttpFoundation\File\File;
+use App\State\UserPasswordHasher;
 
+
+#[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            denormalizationContext: ['groups' => 'company:create'],
+            validationContext: ['groups' => 'company:create'],
+            processor: UserPasswordHasher::class,
+        ),
+        new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'company:update'],
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+            ",
+            processor: UserPasswordHasher::class,
+        ),
+        new Delete(
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+            ",
+        )
+    ],
+    normalizationContext: ['groups' => ['company:read', 'service:read']],
+)]
 class Company implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['company:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
     private ?string $name = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $kbis = null;
+    #[Vich\UploadableField(mapping: 'kbis_file', fileNameProperty: 'kbis')]
+    #[Groups(['company:create'])]
+    private ?File $kbisFile = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read'])]
+    #[ApiProperty(
+        security: "
+            is_granted('ROLE_ADMIN') 
+            or (is_granted('ROLE_COMPANY') and object.getId() == user.getId())
+        ",
+    )]
+    private ?string $kbis = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?\DateTimeInterface $foundationDate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?string $country = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['company:read', 'company:update', 'establishment:read'])]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:update'])]
+    private ?string $raised = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'company:create'])]
+    #[AcmeAssert\UniqueEmail(groups: ['company:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'put:admin', 'company:update'])]
+    #[ApiProperty(
+        security: "
+            is_granted('ROLE_ADMIN') 
+        ",
+    )]
     private ?string $status = 'PENDING';
 
     private ?array $roles = ['ROLE_COMPANY'];
 
+    #[Groups(['company:create'])]
+    #[Assert\Length(min: 4)]
     private ?string $plainPassword = null;
 
     /**
      * @var Collection<int, Establishment>
      */
     #[ORM\OneToMany(mappedBy: 'company', targetEntity: Establishment::class)]
+    #[Groups(['company:read'])]
     private Collection $establishments;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
+    #[Assert\Url]
+    private ?string $image = null;
 
     public function __construct()
     {
@@ -62,6 +147,18 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getKbisFile(): ?File
+    {
+        return $this->kbisFile;
+    }
+
+    public function setKbisFile(?File $kbisFile): static
+    {
+        $this->kbisFile = $kbisFile;
 
         return $this;
     }
@@ -160,7 +257,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->id;
+        return (string)$this->email;
     }
 
     /**
@@ -192,4 +289,65 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getFoundationDate(): ?\DateTimeInterface
+    {
+        return $this->foundationDate;
+    }
+
+    public function setFoundationDate(?\DateTimeInterface $foundationDate): static
+    {
+        $this->foundationDate = $foundationDate;
+
+        return $this;
+    }
+
+    public function getCountry(): ?string
+    {
+        return $this->country;
+    }
+
+    public function setCountry(string $country): static
+    {
+        $this->country = $country;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getRaised(): ?string
+    {
+        return $this->raised;
+    }
+
+    public function setRaised(string $raised): static
+    {
+        $this->raised = $raised;
+
+        return $this;
+    }
+
 }

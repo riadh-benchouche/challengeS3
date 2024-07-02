@@ -1,13 +1,29 @@
 import {ChangeEvent} from "react";
 
-export default function Input({label, type, placeholder, value, onChange, className, required = true}: {
+export default function Input({
+                                  label,
+                                  type,
+                                  placeholder,
+                                  value,
+                                  onChange,
+                                  className,
+                                  required = true,
+                                  name,
+                                  disabled = false,
+                                  min,
+                                  max
+                              }: {
     label?: string,
     type: string,
     placeholder: string,
-    value: string,
+    value: string | number,
     onChange: (e: ChangeEvent<HTMLInputElement>) => void,
     className?: string
     required?: boolean
+    disabled?: boolean
+    name?: string
+    min?: number
+    max?: number
 }) {
     return (
         <div className="w-full">
@@ -18,9 +34,12 @@ export default function Input({label, type, placeholder, value, onChange, classN
             <div className="mt-2">
                 <input
                     id={label}
-                    name={label}
+                    name={label ? label : name}
                     type={type}
                     autoComplete="off"
+                    min={min}
+                    max={max}
+                    disabled={disabled}
                     required={required}
                     value={value}
                     onChange={onChange}

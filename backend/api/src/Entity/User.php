@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             security: "
                 is_granted('ROLE_ADMIN')
-                or (is_granted('ROLE_USER') and object.getId() == user.getId())
+                or (is_granted('ROLE_CLIENT') and object.getId() == user.getId())
             ",
         ),
         new GetCollection(
@@ -43,7 +43,8 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Patch(
             processor: UserPasswordHasher::class,
-            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_USER') and object.getId() == user.getId())",
+            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT') and object.getId() == user.getId())",
+            inputFormats: [ "json" ],
             denormalizationContext: ['groups' => 'user:update']
         ),
         new Delete(
@@ -56,11 +57,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'appointment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:create'])]
+    #[AcmeAssert\UniqueEmail(groups: ['user:create'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
@@ -86,9 +88,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $lastName = null;
 
+    /**
+     * @var Collection<int, Appointment>
+     */
+    #[ORM\OneToMany(mappedBy: 'bookedBy', targetEntity: Appointment::class)]
+    #[Groups(['user:read'])]
+    private Collection $appointments;
+
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
+        $this->appointments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -158,7 +168,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->id;
+        return (string) $this->email;
     }
 
     /**
@@ -219,6 +229,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(Appointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setBookedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(Appointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment)) {
+            // set the owning side to null (unless already changed)
+            if ($appointment->getBookedBy() === $this) {
+                $appointment->setBookedBy(null);
+            }
+        }
 
         return $this;
     }

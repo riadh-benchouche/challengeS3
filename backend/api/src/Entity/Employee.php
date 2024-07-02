@@ -6,55 +6,115 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Repository\EmployeeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+
 
 #[ORM\Entity(repositoryClass: EmployeeRepository::class)]
-#[ApiResource]
-class Employee implements UserInterface, PasswordAuthenticatedUserInterface
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            denormalizationContext: ['groups' => 'employee:create'],
+            securityPostDenormalize: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
+            ",
+            validationContext: ['groups' => 'employee:create'],
+        ),
+        new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'employee:update'],
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
+            ",
+        ),
+        new Delete(
+            security: "is_granted('ROLE_ADMIN')"
+        )
+    ],
+    normalizationContext: ['groups' => ['employee:read', 'appointment:read']],
+)]
+class Employee
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'appointment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['employee:create', 'establishment:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $password = null;
-
-    private ?string $plainPassword = null;
-
-    #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
     private ?string $lastName = null;
 
-    private array $roles = ['ROLE_EMPLOYEE'];
+    #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
+    private ?string $category = null;
 
     #[ORM\ManyToOne(inversedBy: 'employees')]
+    #[Groups(['employee:read', 'admin:employee:read', 'employee:create'])]
     private ?Establishment $establishment = null;
 
     /**
      * @var Collection<int, Rating>
      */
     #[ORM\OneToMany(mappedBy: 'ratedEmployee', targetEntity: Rating::class)]
+    #[Groups(['employee:read'])]
     private Collection $ratings;
 
+
     /**
-     * @var Collection<int, Service>
+     * @var Collection<int, WorkSchedule>
      */
-    #[ORM\ManyToMany(targetEntity: Service::class, mappedBy: 'employees')]
-    private Collection $services;
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: WorkSchedule::class)]
+    #[Groups(['employee:read', 'admin:employee:read', 'establishment:read'])]
+    private Collection $workSchedules;
+
+    /**
+     * @var Collection<int, LeaveDay>
+     */
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: LeaveDay::class)]
+    #[Groups(['employee:read', 'admin:employee:read', 'establishment:read'])]
+    private Collection $leaveDays;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['employee:read', 'employee:update'])]
+    #[Assert\Url]
+    private ?string $image = null;
+
+    #[ORM\ManyToOne(inversedBy: 'employees')]
+    #[Groups(['employee:read', 'service:read', 'employee:create', 'employee:update'])]
+    private ?Service $service = null;
+
+    /**
+     * @var Collection<int, Appointment>
+     */
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Appointment::class)]
+    #[Groups(['employee:read'])]
+    private Collection $appointments;
 
     public function __construct()
     {
         $this->ratings = new ArrayCollection();
-        $this->services = new ArrayCollection();
+        $this->workSchedules = new ArrayCollection();
+        $this->leaveDays = new ArrayCollection();
+        $this->appointments = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -70,30 +130,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
-        return $this;
-    }
-
-    public function getPassword(): ?string
-    {
-        return $this->password;
-    }
-
-    public function setPassword(string $password): static
-    {
-        $this->password = $password;
-
-        return $this;
-    }
-
-    public function getPlainPassword(): ?string
-    {
-        return $this->plainPassword;
-    }
-
-    public function setPlainPassword(?string $plainPassword): self
-    {
-        $this->plainPassword = $plainPassword;
 
         return $this;
     }
@@ -122,21 +158,14 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
-    public function getRoles(): array
+    public function getCategory(): ?string
     {
-        $roles = $this->roles;
-
-        $roles[] = 'ROLE_EMPLOYEE';
-
-        return array_unique($roles);
+        return $this->category;
     }
 
-    public function setRoles(array $roles): static
+    public function setCategory(string $category): static
     {
-        $this->roles = $roles;
+        $this->category = $category;
 
         return $this;
     }
@@ -151,24 +180,6 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         $this->establishment = $establishment;
 
         return $this;
-    }
-    
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
-    public function getUserIdentifier(): string
-    {
-        return (string) $this->id;
-    }
-
-    /**
-     * @see UserInterface
-     */
-    public function eraseCredentials(): void
-    {
-        $this->plainPassword = null;
     }
 
     /**
@@ -202,29 +213,117 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Service>
+     * @return Collection<int, WorkSchedule>
      */
-    public function getServices(): Collection
+    public function getWorkSchedules(): Collection
     {
-        return $this->services;
+        return $this->workSchedules;
     }
 
-    public function addService(Service $service): static
+    public function addWorkSchedule(WorkSchedule $workSchedule): static
     {
-        if (!$this->services->contains($service)) {
-            $this->services->add($service);
-            $service->addEmployee($this);
+        if (!$this->workSchedules->contains($workSchedule)) {
+            $this->workSchedules->add($workSchedule);
+            $workSchedule->setEmployee($this);
         }
 
         return $this;
     }
 
-    public function removeService(Service $service): static
+    public function removeWorkSchedule(WorkSchedule $workSchedule): static
     {
-        if ($this->services->removeElement($service)) {
-            $service->removeEmployee($this);
+        if ($this->workSchedules->removeElement($workSchedule)) {
+            // set the owning side to null (unless already changed)
+            if ($workSchedule->getEmployee() === $this) {
+                $workSchedule->setEmployee(null);
+            }
         }
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, LeaveDay>
+     */
+    public function getLeaveDays(): Collection
+    {
+        return $this->leaveDays;
+    }
+
+    public function addLeaveDay(LeaveDay $leaveDay): static
+    {
+        if (!$this->leaveDays->contains($leaveDay)) {
+            $this->leaveDays->add($leaveDay);
+            $leaveDay->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLeaveDay(LeaveDay $leaveDay): static
+    {
+        if ($this->leaveDays->removeElement($leaveDay)) {
+            // set the owning side to null (unless already changed)
+            if ($leaveDay->getEmployee() === $this) {
+                $leaveDay->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getImage(): ?string
+    {
+        return $this->image;
+    }
+
+    public function setImage(?string $image): static
+    {
+        $this->image = $image;
+
+        return $this;
+    }
+
+    public function getService(): ?Service
+    {
+        return $this->service;
+    }
+
+    public function setService(?Service $service): static
+    {
+        $this->service = $service;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(Appointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(Appointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment)) {
+            // set the owning side to null (unless already changed)
+            if ($appointment->getEmployee() === $this) {
+                $appointment->setEmployee(null);
+            }
+        }
+
+        return $this;
+    }
+    
 }

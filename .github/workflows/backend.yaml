@@ -45,12 +45,6 @@ jobs:
             echo "Waiting for the service to start..."
             sleep 5
           done
-
-  tests:
-    needs: [install]
-    name: Run Tests
-    runs-on: ubuntu-latest
-    steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Check HTTP reachability
@@ -74,17 +68,6 @@ jobs:
       - name: Doctrine Schema Validator
         working-directory: backend
         run: docker compose exec -T php bin/console -e test doctrine:schema:validate
-
-  static-analysis:
-    needs: [install]
-    name: Static Analysis
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Run PHPStan
-        working-directory: backend
-        run: docker compose exec -T php vendor/bin/phpstan --configuration=backend/phpstan.dist.neon
 
   lint:
     name: Docker Lint

@@ -16,33 +16,35 @@ import {
     UsersIcon,
     XMarkIcon,
     UserIcon,
+    CalendarIcon
 } from '@heroicons/react/24/outline'
 
-const AdminNavigation = [
-    {name: 'Tableau de bord', href: '/admin/dashboard', icon: HomeIcon, current: true},
-    {name: 'Entreprises', href: '/admin/companies', icon: FolderIcon, current: false},
-    {name: 'Administateur', href: '/admin/users', icon: UsersIcon, current: false},
-]
-
-const OrganizationNavigation = [
-    {name: 'Tableau de bord', href: '/organization/dashboard', icon: HomeIcon, current: true},
-    {name: 'Salarié', href: '/organization/employees', icon: UsersIcon, current: false},
-    {name: 'Services', href: '/organization/services', icon: FolderIcon, current: false},
-    {name: 'Calendrier', href: '/organization/calendar', icon: FolderIcon, current: false},
-]
-
 const userNavigation = [
-    {name: 'Your profile', href: '#'},
-    {name: 'Sign out', href: '#'},
+    {name: 'Profile', href: '#'},
 ]
 
 function classNames(...classes: string[]) {
     return classes.filter(Boolean).join(' ')
 }
 
+function logout() {
+    localStorage.clear();
+    window.location.href = "/login";
+}
+
 export default function AdminLayout({children, role}: { children: React.ReactNode, role: string }) {
     const [sidebarOpen, setSidebarOpen] = useState(false)
-    const navigation = role === "ROLE_ADMIN" ? AdminNavigation : OrganizationNavigation;
+    const [navigation, setNavigation] = useState(
+        role === "ROLE_ADMIN" ? [
+            {name: 'Tableau de bord', href: '/admin/dashboard', icon: HomeIcon, current: true},
+            {name: 'Entreprises', href: '/admin/companies', icon: FolderIcon, current: false},
+            {name: 'Administateur', href: '/admin/administrators', icon: UsersIcon, current: false},
+        ] : [
+            {name: 'Tableau de bord', href: '/organization/dashboard', icon: HomeIcon, current: true},
+            {name: 'Etablisments', href: '/organization/establishment', icon: FolderIcon, current: false},
+            {name: 'Calendrier', href: '/organization/calendar', icon: CalendarIcon, current: false},
+        ]
+    )
     return (
         <>
             <div>
@@ -102,6 +104,14 @@ export default function AdminLayout({children, role}: { children: React.ReactNod
                                                             <li key={item.name}>
                                                                 <a
                                                                     href={item.href}
+                                                                    onClick={() => {
+                                                                        setNavigation(
+                                                                            navigation.map((i) => ({
+                                                                                ...i,
+                                                                                current: i.name === item.name
+                                                                            }))
+                                                                        )
+                                                                    }}
                                                                     className={classNames(
                                                                         item.current
                                                                             ? 'bg-gray-50 text-primary-600'
@@ -151,6 +161,14 @@ export default function AdminLayout({children, role}: { children: React.ReactNod
                                             <li key={item.name}>
                                                 <a
                                                     href={item.href}
+                                                    onClick={() => {
+                                                        setNavigation(
+                                                            navigation.map((i) => ({
+                                                                ...i,
+                                                                current: i.name === item.name
+                                                            }))
+                                                        )
+                                                    }}
                                                     className={classNames(
                                                         item.current
                                                             ? 'bg-gray-50 text-primary-600'
@@ -223,6 +241,19 @@ export default function AdminLayout({children, role}: { children: React.ReactNod
                                                     )}
                                                 </MenuItem>
                                             ))}
+                                            <MenuItem>
+                                                {({focus}) => (
+                                                    <button
+                                                        onClick={logout}
+                                                        className={classNames(
+                                                            focus ? 'bg-gray-50' : '',
+                                                            'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                                        )}
+                                                    >
+                                                        Déconnexion
+                                                    </button>
+                                                )}
+                                            </MenuItem>
                                         </MenuItems>
                                     </Transition>
                                 </Menu>

@@ -9,6 +9,7 @@ import guestRoutes from "@/routes/guestRoutes.tsx";
 import clientRoutes from "@/routes/clientRoutes.tsx";
 import organizationRoutes from "@/routes/organizationRoutes.tsx";
 import {getLayout} from "@/routes/getLayout.tsx";
+import RegisterCompany from "@/pages/auth/RegisterCompany.tsx";
 
 
 const authRoutes: RouteObject[] = [
@@ -19,6 +20,10 @@ const authRoutes: RouteObject[] = [
     {
         path: "/register",
         element: getLayout(<Register/>, false, false, false, true)
+    },
+    {
+        path: "/register-company",
+        element: getLayout(<RegisterCompany/>, false, false, false, true)
     },
     {
         path: "/forgot-password",

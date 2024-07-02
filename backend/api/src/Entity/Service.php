@@ -7,36 +7,90 @@ use App\Repository\ServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
 
 #[ORM\Entity(repositoryClass: ServiceRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            denormalizationContext: ['groups' => 'service:create'],
+            securityPostDenormalize: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
+            ",
+        ),
+        new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'service:update'],
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
+            ",
+        ),
+        new Delete(
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getEstablishment().getCompany().getId() == user.getId())
+            ",
+        )
+    ],
+    normalizationContext: ['groups' => ['service:read', 'employee:read', 'user:read']]
+)]
 class Service
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['service:read', 'employee:read', 'user:read', 'appointment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['service:read', 'employee:read', 'user:read', 'service:create', 'service:update'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['service:read', 'employee:read', 'user:read', 'service:create', 'service:update'])]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(['service:read', 'employee:read', 'user:read', 'service:create', 'service:update'])]
     private ?int $duration = null;
 
     #[ORM\Column]
+    #[Groups(['employee:read', 'user:read', 'service:update', 'service:create', 'appointment:read'])]
     private ?int $price = null;
+
+    #[ORM\ManyToOne(inversedBy: 'services')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['service:read', 'service:create', 'service:update'])]
+    private ?Establishment $establishment = null;
+
+    /**
+     * @var Collection<int, Appointment>
+     */
+    #[ORM\OneToMany(mappedBy: 'service', targetEntity: Appointment::class)]
+    #[Groups(['establishment:read', 'employee:read', 'company:read'])]
+    private Collection $appointments;
 
     /**
      * @var Collection<int, Employee>
      */
-    #[ORM\ManyToMany(targetEntity: Employee::class, inversedBy: 'services')]
+    #[ORM\OneToMany(mappedBy: 'service', targetEntity: Employee::class)]
+    #[Groups(['service:read', 'employee:read'])]
     private Collection $employees;
+
+
 
     public function __construct()
     {
+        $this->appointments = new ArrayCollection();
         $this->employees = new ArrayCollection();
     }
 
@@ -93,6 +147,49 @@ class Service
         return $this;
     }
 
+    public function getEstablishment(): ?Establishment
+    {
+        return $this->establishment;
+    }
+
+    public function setEstablishment(?Establishment $establishment): static
+    {
+        $this->establishment = $establishment;
+
+        return $this;
+    }
+
+
+    /**
+     * @return Collection<int, Appointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(Appointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setService($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAppointment(Appointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment)) {
+            // set the owning side to null (unless already changed)
+            if ($appointment->getService() === $this) {
+                $appointment->setService(null);
+            }
+        }
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, Employee>
      */
@@ -105,6 +202,7 @@ class Service
     {
         if (!$this->employees->contains($employee)) {
             $this->employees->add($employee);
+            $employee->setService($this);
         }
 
         return $this;
@@ -112,8 +210,14 @@ class Service
 
     public function removeEmployee(Employee $employee): static
     {
-        $this->employees->removeElement($employee);
+        if ($this->employees->removeElement($employee)) {
+            // set the owning side to null (unless already changed)
+            if ($employee->getService() === $this) {
+                $employee->setService(null);
+            }
+        }
 
         return $this;
     }
+
 }

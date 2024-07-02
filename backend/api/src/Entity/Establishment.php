@@ -6,46 +6,95 @@ use App\Repository\EstablishmentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: EstablishmentRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(),
+        new GetCollection(),
+        new Post(
+            denormalizationContext: ['groups' => 'establishment:create'],
+            securityPostDenormalize: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId() and object.getCompany().getStatus() == 'ACTIVE')",
+        ),
+        new Patch(
+            inputFormats: [ "json" ],
+            denormalizationContext: ['groups' => 'establishment:update'],
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId())",
+        ),
+        new Delete(
+            security: "
+                is_granted('ROLE_ADMIN') 
+                or (is_granted('ROLE_COMPANY') and object.getCompany().getId() == user.getId())",
+        )
+    ],
+    normalizationContext: [ 'groups' => ['establishment:read', 'service:read', 'employee:read']],
+)]
 class Establishment
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['company:read', 'employee:read', 'establishment:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $adress = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $city = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $zipCode = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $country = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read', 'establishment:create', 'establishment:update'])]
     private ?string $phone = null;
 
     #[ORM\ManyToOne(inversedBy: 'establishments')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['establishment:create', 'establishment:read', 'employee:read'])]
     private ?Company $company = null;
 
     /**
      * @var Collection<int, Employee>
      */
     #[ORM\OneToMany(mappedBy: 'establishment', targetEntity: Employee::class)]
+    #[Groups(['company:read', 'employee:read', 'establishment:read'])]
     private Collection $employees;
+
+    /**
+     * @var Collection<int, Service>
+     */
+    #[ORM\OneToMany(mappedBy: 'establishment', targetEntity: Service::class)]
+    #[Groups(['establishment:read', 'service:read'])]
+    private Collection $services;
 
     public function __construct()
     {
         $this->employees = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -161,6 +210,36 @@ class Establishment
             // set the owning side to null (unless already changed)
             if ($employee->getEstablishment() === $this) {
                 $employee->setEstablishment(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Service>
+     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): static
+    {
+        if (!$this->services->contains($service)) {
+            $this->services->add($service);
+            $service->setEstablishment($this);
+        }
+
+        return $this;
+    }
+
+    public function removeService(Service $service): static
+    {
+        if ($this->services->removeElement($service)) {
+            // set the owning side to null (unless already changed)
+            if ($service->getEstablishment() === $this) {
+                $service->setEstablishment(null);
             }
         }
 
