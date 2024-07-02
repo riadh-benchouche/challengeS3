@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Ensure Permissions
-        run: sudo chmod -R 777 /home/runner/work/challengeS3/challengeS3/backend/api/ || true
+        run: sudo chmod -R 777 /home/runner/work/challengeS3/challengeS3/backend/api/vendor/api-platform || true
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set up Docker Buildx
