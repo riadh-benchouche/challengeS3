@@ -21,7 +21,9 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\GetCollection;
 use Symfony\Component\HttpFoundation\File\File;
 use App\State\UserPasswordHasher;
-
+use App\Processor\CreateCompanyProcessorRegister;
+use App\Processor\CreateCompanyProcessor;
+use App\Processor\UpdateCompanyProcessor;
 
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
@@ -31,11 +33,26 @@ use App\State\UserPasswordHasher;
         new GetCollection(),
         new Post(
             denormalizationContext: ['groups' => 'company:create'],
-            validationContext: ['groups' => 'company:create'],
-            processor: UserPasswordHasher::class,
+            processor: CreateCompanyProcessor::class,
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                summary: 'Create company',
+                description: 'Create company with kbis file.'
+            ),
+            security: "
+                is_granted('ROLE_ADMIN')
+            ",
+        ),
+        new Post(
+            uriTemplate: '/companies/register',
+            denormalizationContext: ['groups' => 'company:register'],
+            processor: CreateCompanyProcessorRegister::class,
+            openapi: new \ApiPlatform\OpenApi\Model\Operation(
+                summary: 'Register company',
+                description: 'Register company with kbis file.'
+            ),
         ),
         new Patch(
-            inputFormats: ["json"],
+            inputFormats: ['json'],
             denormalizationContext: ['groups' => 'company:update'],
             security: "
                 is_granted('ROLE_ADMIN') 
@@ -61,11 +78,11 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
+    #[Groups(['company:read', 'company:create', 'company:register', 'company:update', 'establishment:read'])]
     private ?string $name = null;
 
     #[Vich\UploadableField(mapping: 'kbis_file', fileNameProperty: 'kbis')]
-    #[Groups(['company:create'])]
+    #[Groups(['company:create', 'company:register'])]
     private ?File $kbisFile = null;
 
     #[ORM\Column(length: 255)]
@@ -95,15 +112,15 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $raised = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'company:create'])]
-    #[AcmeAssert\UniqueEmail(groups: ['company:create'])]
+    #[Groups(['company:read', 'company:create', 'company:register'])]
+    #[AcmeAssert\UniqueEmail(groups: ['company:create', 'company:register'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'put:admin', 'company:update'])]
+    #[Groups(['company:read', 'put:admin', 'company:create', 'company:update'])]
     #[ApiProperty(
         security: "
             is_granted('ROLE_ADMIN') 
@@ -113,7 +130,7 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
 
     private ?array $roles = ['ROLE_COMPANY'];
 
-    #[Groups(['company:create'])]
+    #[Groups(['company:create', 'company:register', 'company-update'])]
     #[Assert\Length(min: 4)]
     private ?string $plainPassword = null;
 
@@ -128,6 +145,9 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['company:read', 'company:create', 'company:update', 'establishment:read'])]
     #[Assert\Url]
     private ?string $image = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $activationToken = null;
 
     public function __construct()
     {
@@ -350,4 +370,14 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getActivationToken(): ?string
+    {
+        return $this->activationToken;
+    }
+
+    public function setActivationToken(?string $activationToken): self
+    {
+        $this->activationToken = $activationToken;
+        return $this;
+    }
 }

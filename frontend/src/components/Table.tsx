@@ -1,5 +1,6 @@
 import {Dispatch, SetStateAction} from "react";
 import Switcher from "@/components/Switcher.tsx";
+import {ArrowDownTrayIcon} from "@heroicons/react/20/solid";
 
 export default function Table({
                                   title,
@@ -70,25 +71,30 @@ export default function Table({
                                     <tbody className="divide-y divide-gray-200 bg-white">
                                     {rows.map((row) => (
                                         <tr key={row.id}>
-                                            {columns.map((column) => (
-                                                column.key === 'image' ?
-                                                    <td key={row[column.key]}
-                                                        className="py-2 pl-4">
+                                           {columns.map((column) => (
+                                                column.key === 'image' ? (
+                                                    <td key={row[column.key]} className="py-2 pl-4">
                                                         <img
                                                             className="inline-block h-10 w-10 rounded-md"
                                                             src={row[column.key]}
                                                             alt=""
                                                         />
-                                                    </td> : column.key === 'status' ?
-                                                        <td key={row[column.key]}
-                                                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                            <Switcher enabled={row[column.key] === 'ACTIVE'}/>
-                                                        </td>
-                                                        :
-                                                        <td key={row[column.key]}
-                                                            className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                            {row[column.key]}
-                                                        </td>
+                                                    </td>
+                                                ) : column.key === 'status' ? (
+                                                    <td key={row[column.key]} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                        <Switcher enabled={row[column.key] === 'ACTIVE'} />
+                                                    </td>
+                                                ) : column.key === 'kbis' ? (
+                                                    <td key={row[column.key]} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                        <a href={`http://localhost:8000/uploads/`+row[column.key]} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                                                            <ArrowDownTrayIcon className="h-6 w-6" /> KBIS
+                                                        </a>
+                                                    </td>
+                                                ) : (
+                                                    <td key={row[column.key]} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                                                        {row[column.key]}
+                                                    </td>
+                                                )
                                             ))}
                                             <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 space-x-2">
                                                 <button

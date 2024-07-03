@@ -30,7 +30,7 @@ class CompanyFixtures extends Fixture
             $company->setRaised($faker->randomFloat(2, 1000, 100000));
             $company->setCountry($faker->country);            
             $company->setKbisFile(new File(__DIR__ . '/../../public/uploads/kbis' . $i . '.jpg'));
-            $company->setKbis('kbis' . $i . '-file');
+            $company->setKbis('kbis' . $i . '-file.jpg');
             $company->setImage($faker->imageUrl(640, 480, 'business', true));
             $manager->persist($company);
             $this->addReference('company_' . $i, $company);

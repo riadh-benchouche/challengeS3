@@ -26,7 +26,10 @@ export default function Companies() {
                           description="Ajoutez une nouvelle entreprise">
                 <CompanyForm type={selectedCompany ? 'edit' : 'create'}
                              company={selectedCompany ? selectedCompany : undefined}
-                             onClose={() => setOpenCreate(false)}/>
+                             onClose={() => { 
+                                setOpenCreate(false)
+                                setSelectedCompany(undefined)
+                            }}/>
             </SideBarModal>
             <Table title="Entreprises"
                    description="Une liste de toutes les entreprises de votre compte, y compris leur nom, siret, kbis, statut, adresse, forme juridique et date de création."
@@ -35,6 +38,7 @@ export default function Companies() {
                        {key: 'name', name: 'Nom'},
                        {key: 'email', name: 'Email'},
                        {key: 'country', name: 'Pays'},
+                       {key: 'kbis', name: 'Kbis'},
                        {key: 'status', name: 'Statut'},
                        {key: 'foundationDate', name: 'Date de création'},
                    ]}

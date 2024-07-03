@@ -7,6 +7,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Company;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 class ConfirmCompanyController extends AbstractController
 {
@@ -17,11 +19,17 @@ class ConfirmCompanyController extends AbstractController
         $this->accountActivationService = $accountActivationService;
     }
 
-    #[Route('/companies/{id}/activate', name: 'activate_account', methods: ['GET'])]
-    public function confirmRegistration(Company $company): Response
+    #[Route('/activate/{id}/{token}', name: 'activate_account', methods: ['GET'])]
+    public function confirmRegistration(Request $request, CompanyAccountActivationService $accountActivationService): Response
     {
-        $this->accountActivationService->activateAccount($company->getActivationToken());
-
+        $token = $request->attributes->get('token');
+    
+        if (!$token) {
+            throw new BadRequestHttpException('Token not provided');
+        }
+    
+        $accountActivationService->activateAccount($token);
+    
         return new JsonResponse(['message' => 'Company registration confirmed'], Response::HTTP_OK);
     }
 }
