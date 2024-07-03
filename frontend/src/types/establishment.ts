@@ -1,4 +1,4 @@
-import {Employee} from "@/types/employe.ts";
+import {Employee, Service} from "@/types/employe.ts";
 import {Company} from "@/types/company.ts";
 
 export interface EstablishmentType {
@@ -11,5 +11,6 @@ export interface EstablishmentType {
     phone: string;
     company: Company;
     employees: Employee[];
+    services: Service[];
 }
 

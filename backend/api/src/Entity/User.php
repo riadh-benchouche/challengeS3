@@ -24,7 +24,6 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ApiResource(
-    normalizationContext: [ 'groups' => ['user:read']],
     operations: [
         new Get(
             security: "
@@ -36,21 +35,22 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_ADMIN')",
         ),
         new Post(
-            processor: UserPasswordHasher::class,
+            inputFormats: [ "json" ],
             denormalizationContext: ['groups' => 'user:create'],
             validationContext: ['groups' => 'user:create'],
-            inputFormats: [ "json" ]
+            processor: UserPasswordHasher::class
         ),
         new Patch(
-            processor: UserPasswordHasher::class,
-            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT') and object.getId() == user.getId())",
             inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'user:update']
+            denormalizationContext: ['groups' => 'user:update'],
+            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_CLIENT') and object.getId() == user.getId())",
+            processor: UserPasswordHasher::class
         ),
         new Delete(
             security: "is_granted('ROLE_ADMIN')"
         )
     ],
+    normalizationContext: [ 'groups' => ['user:read']],
 )]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -61,7 +61,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:create'])]
+    #[Groups(['user:create', 'user:read'])]
     #[AcmeAssert\UniqueEmail(groups: ['user:create'])]
     private ?string $email = null;
 

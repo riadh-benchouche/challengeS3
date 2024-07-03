@@ -56,11 +56,11 @@ class Employee
     private ?string $email = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update', 'appointment:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update'])]
+    #[Groups(['company:read', 'establishment:read', 'employee:read', 'admin:employee:read', 'employee:create', 'employee:update', 'appointment:read'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]

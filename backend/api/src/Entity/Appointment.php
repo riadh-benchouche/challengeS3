@@ -21,7 +21,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
         new Get(
             security: "
                 is_granted('ROLE_ADMIN') 
-                or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
+                or (is_granted('ROLE_CLIENT') and (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId()))
             ",
         ),
         new GetCollection(),
