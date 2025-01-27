@@ -24,6 +24,7 @@ use App\State\UserPasswordHasher;
 use App\Processor\CreateCompanyProcessorRegister;
 use App\Processor\CreateCompanyProcessor;
 use App\Processor\UpdateCompanyProcessor;
+use App\Enum\CompanyStatus;
 
 #[Vich\Uploadable]
 #[ORM\Entity(repositoryClass: CompanyRepository::class)]
@@ -32,24 +33,24 @@ use App\Processor\UpdateCompanyProcessor;
         new Get(),
         new GetCollection(),
         new Post(
-            denormalizationContext: ['groups' => 'company:create'],
-            processor: CreateCompanyProcessor::class,
             openapi: new \ApiPlatform\OpenApi\Model\Operation(
                 summary: 'Create company',
                 description: 'Create company with kbis file.'
             ),
+            denormalizationContext: ['groups' => 'company:create'],
             security: "
                 is_granted('ROLE_ADMIN')
             ",
+            processor: CreateCompanyProcessor::class,
         ),
         new Post(
             uriTemplate: '/companies/register',
-            denormalizationContext: ['groups' => 'company:register'],
-            processor: CreateCompanyProcessorRegister::class,
             openapi: new \ApiPlatform\OpenApi\Model\Operation(
                 summary: 'Register company',
                 description: 'Register company with kbis file.'
             ),
+            denormalizationContext: ['groups' => 'company:register'],
+            processor: CreateCompanyProcessorRegister::class,
         ),
         new Patch(
             inputFormats: ['json'],
@@ -119,14 +120,12 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $password = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, enumType: CompanyStatus::class)]
     #[Groups(['company:read', 'put:admin', 'company:create', 'company:update'])]
     #[ApiProperty(
-        security: "
-            is_granted('ROLE_ADMIN') 
-        ",
+        security: "is_granted('ROLE_ADMIN')",
     )]
-    private ?string $status = 'PENDING';
+    private CompanyStatus $status = CompanyStatus::PENDING;
 
     private ?array $roles = ['ROLE_COMPANY'];
 
@@ -239,15 +238,14 @@ class Company implements UserInterface, PasswordAuthenticatedUserInterface
         $this->plainPassword = null;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): CompanyStatus
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(CompanyStatus $status): static
     {
         $this->status = $status;
-
         return $this;
     }
 

@@ -20,28 +20,51 @@ export default function Login() {
     const [error, setError] = useState('')
     const navigate = useNavigate()
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        axiosInstance.post('/login', {email, password}).then(r => {
-            const decoded: DecodedToken = jwtDecode(r.data.token);
+        setError('') // Reset error on new submission
+
+        try {
+            const response = await axiosInstance.post('/login', {email, password})
+            const decoded: DecodedToken = jwtDecode(response.data.token);
+
+            // Store user data
             if (decoded?.roles) {
                 localStorage.setItem('roles', JSON.stringify(decoded?.roles))
                 localStorage.setItem('userId', decoded?.id)
                 localStorage.setItem('email', decoded?.username)
             }
-            localStorage.setItem('token', 'Bearer ' + r.data.token)
+            localStorage.setItem('token', 'Bearer ' + response.data.token)
+
+            // Navigate based on role
             if (decoded?.roles.includes('ROLE_ADMIN')) {
-                return navigate('/admin/dashboard')
-            }
-            if (decoded?.roles.includes('ROLE_COMPANY')) {
-                return navigate('/organization/dashboard')
+                navigate('/admin/dashboard')
+            } else if (decoded?.roles.includes('ROLE_COMPANY')) {
+                navigate('/organization/dashboard')
             } else {
-                return navigate('/')
+                navigate('/')
             }
-        }).catch(e => {
-            console.error(e)
-            setError('Email ou mot de passe incorrect')
-        })
+        } catch (err: any) {
+            console.error(err)
+            // Handle specific error messages
+            if (err.response?.data?.message) {
+                switch (err.response.data.message) {
+                    case 'Votre compte est en attente de validation par un administrateur.':
+                        setError('Votre compte est en cours de validation. Vous recevrez un email une fois validé.')
+                        break
+                    case 'Votre compte a été rejeté par un administrateur.':
+                        setError('Votre compte a été rejeté. Veuillez contacter le support pour plus d\'informations.')
+                        break
+                    case 'Votre compte a été suspendu.':
+                        setError('Votre compte est actuellement suspendu. Veuillez contacter le support.')
+                        break
+                    default:
+                        setError('Email ou mot de passe incorrect')
+                }
+            } else {
+                setError('Une erreur est survenue. Veuillez réessayer.')
+            }
+        }
     }
 
     return (
@@ -63,67 +86,63 @@ export default function Login() {
                         </a>
                     </p>
                 </div>
+
                 {error && (
-                    <div className="mt-5">
-                        <div className="rounded-md bg-red-50 p-4">
-                            <div className="flex">
-                                <div className="flex-shrink-0">
-                                    <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true"/>
-                                </div>
-                                <div className="ml-3">
-                                    <h3 className="text-sm font-medium text-red-800">Erreur</h3>
-                                    <div className="mt-2 text-sm text-red-700">
-                                        {error}
-                                    </div>
+                    <div className="mt-5 rounded-md bg-red-50 p-4">
+                        <div className="flex">
+                            <div className="flex-shrink-0">
+                                <XCircleIcon className="h-5 w-5 text-red-400" aria-hidden="true"/>
+                            </div>
+                            <div className="ml-3">
+                                <h3 className="text-sm font-medium text-red-800">Erreur</h3>
+                                <div className="mt-2 text-sm text-red-700">
+                                    {error}
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
+
                 <div className="mt-5">
-                    <div>
-                        <form className="space-y-6" onSubmit={handleSubmit}>
-                            <div>
-                                <Input label="Email"
-                                       type="email"
-                                       placeholder="exemple@exemple.com"
-                                       value={email}
-                                       onChange={(e) => setEmail(e.target.value)}
-                                />
-                            </div>
+                    <form className="space-y-6" onSubmit={handleSubmit}>
+                        <Input
+                            label="Email"
+                            type="email"
+                            placeholder="exemple@exemple.com"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                        />
 
-                            <div>
-                                <Input label="Mot de passe"
-                                       type="password"
-                                       placeholder="********"
-                                       value={password}
-                                       onChange={(e) => setPassword(e.target.value)}
-                                />
-                            </div>
+                        <Input
+                            label="Mot de passe"
+                            type="password"
+                            placeholder="********"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                        />
 
-                            <div className="flex items-center justify-end">
-                                <div className="text-sm leading-6">
-                                    <a href="#"
-                                       className="font-semibold text-primary-600 hover:text-primary-500">
-                                        Mot de passe oublié ?
-                                    </a>
-                                </div>
+                        <div className="flex items-center justify-end">
+                            <div className="text-sm leading-6">
+                                <a href="#" className="font-semibold text-primary-600 hover:text-primary-500">
+                                    Mot de passe oublié ?
+                                </a>
                             </div>
+                        </div>
 
-                            <div>
-                                <Button type="submit" className="w-full">
-                                    Connexion
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
+                        <Button type="submit" className="w-full">
+                            Connexion
+                        </Button>
+                    </form>
                 </div>
+
                 <div className="mt-auto">
                     <p className="text-sm text-gray-500 text-center">
                         Vous souhaitez ouvrir un compte ?{' '} <br/>
                         <a href="/register-company" className="font-semibold text-primary-600 hover:text-primary-500">
-                            Crée un compte professionnel
-                        </a>{' '}
+                            Créer un compte professionnel
+                        </a>
                     </p>
                 </div>
             </div>
