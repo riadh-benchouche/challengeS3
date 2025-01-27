@@ -5,7 +5,7 @@
 **/*.dist
 **/*.cache
 **/._*
-**/.dockerignore
+.dockerignore
 **/.DS_Store
 **/.git/
 **/.gitattributes

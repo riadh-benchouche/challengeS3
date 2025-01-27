@@ -8,6 +8,7 @@ export default function SideBarModal({open, setOpen, title, description, childre
     title: string,
     description: string
     children: React.ReactNode
+    submit?: (e: any) => void
 }) {
     return (
         <Dialog className="relative z-50" open={open} onClose={setOpen}>

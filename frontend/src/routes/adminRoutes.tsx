@@ -1,7 +1,6 @@
 import {RouteObject} from "react-router-dom";
 import {getLayout} from "@/routes/getLayout.tsx";
 import Companies from "@/pages/admin/Companies.tsx";
-import Administrators from "@/pages/admin/Administrators.tsx";
 import AdminDashboard from "@/pages/admin/Dashboard.tsx";
 
 const adminRoutes: RouteObject[] = [
@@ -13,11 +12,6 @@ const adminRoutes: RouteObject[] = [
         path: "/admin/companies",
         element: getLayout(<Companies/>, true, false, false, false)
     },
-    {
-        path: "/admin/administrators",
-        element: getLayout(<Administrators/>, true, false, false, false)
-    }
-
 ]
 
 export default adminRoutes;

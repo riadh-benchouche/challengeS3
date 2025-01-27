@@ -1,0 +1,11 @@
+services:
+  php:
+    build:
+      context: ./backend
+      target: frankenphp_prod
+    environment:
+      APP_SECRET: ${APP_SECRET}
+
+  database:
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}

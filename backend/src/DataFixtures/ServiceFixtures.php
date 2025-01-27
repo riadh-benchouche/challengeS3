@@ -10,7 +10,7 @@ use Doctrine\Persistence\ObjectManager;
 
 class ServiceFixtures extends Fixture implements DependentFixtureInterface
 {
-    public function getDependencies()
+    public function getDependencies(): array
     {
         return [
             EstablishmentFixtures::class,

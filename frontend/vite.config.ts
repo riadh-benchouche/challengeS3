@@ -6,7 +6,11 @@ import path from 'node:path';
 export default defineConfig({
     plugins: [react()],
     server: {
-        port: 3006,
+        port: 3000,
+        host: true,
+        watch: {
+            usePolling: true
+        }
     },
     resolve: {
         alias: {

@@ -1,13 +1,14 @@
 .idea
 backend/api/vendor
-backend/api/.env
+backend/.env
 frontend/package-lock.json
+backend/public/uploads
 
 ###> symfony/framework-bundle ###
 backend/api/.env.local
 backend/api/.env.local.php
 backend/api/.env.*.local
-backend/api/config/secrets/prod/prod.decrypt.private.php
+backend/config/secrets/prod/prod.decrypt.private.php
 backend/api/public/bundles/
 backend/api/var/
 backend/api/vendor/

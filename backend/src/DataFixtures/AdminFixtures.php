@@ -11,10 +11,12 @@ use Doctrine\Persistence\ObjectManager;
 class AdminFixtures extends Fixture
 {
     private $passwordHasher = null;
+
     public function __construct(UserPasswordHasherInterface $passwordHasher)
     {
         $this->passwordHasher = $passwordHasher;
     }
+
     public function load(ObjectManager $manager): void
     {
         $faker = \Faker\Factory::create('fr_FR');

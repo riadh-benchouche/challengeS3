@@ -30,8 +30,8 @@ export default function RegisterCompany() {
 
         try {
             const url = `/api/companies/register`;
-            const method ='post';
-    
+            const method = 'post';
+
             await axiosInstance({
                 method,
                 url,
@@ -40,9 +40,10 @@ export default function RegisterCompany() {
                     'Content-Type': 'multipart/form-data',
                 },
             });
-    
+
             navigate('/login')
-        } catch (err) {
+        } catch (err: any) {
+            setError(err.response.data.message)
             console.log(err);
         }
     }
