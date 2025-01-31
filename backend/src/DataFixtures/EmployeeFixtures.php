@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Employee;
 use App\DataFixtures\EstablishmentFixtures;
+use App\Entity\Establishment;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -29,7 +30,7 @@ class EmployeeFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = \Faker\Factory::create('fr_FR');
         for ($i = 1; $i < 11; $i++) {
-            $establishment = $this->getReference('establishment_' . $faker->numberBetween(1, 10));
+            $establishment = $this->getReference('establishment_' . $faker->numberBetween(1, 10), Establishment::class);
             $employee = new Employee();
             $employee->setFirstname($faker->firstName);
             $employee->setLastname($faker->lastName);

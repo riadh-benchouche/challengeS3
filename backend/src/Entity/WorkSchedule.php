@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Link;
 use App\Repository\WorkScheduleRepository;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\Get;
@@ -21,22 +22,36 @@ use App\Dto\WorkScheduleMultipleDto;
         new Get(),
         new GetCollection(),
         new Post(
+            denormalizationContext: ['groups' => 'work-schedule:create'],
+            securityPostDenormalize: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY'))"
+        ),
+        new Post(
             uriTemplate: '/work_schedules/multiple',
-            input: WorkScheduleMultipleDto::class,
-            processor: WorkScheduleMultipleProcessor::class,
             openapi: new \ApiPlatform\OpenApi\Model\Operation(
                 summary: 'Create multiple work schedules',
                 description: 'Create multiple work schedules in one request.'
             ),
             securityPostDenormalize: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY'))",
+            input: WorkScheduleMultipleDto::class,
+            processor: WorkScheduleMultipleProcessor::class,
         ),
         new Patch(
+            inputFormats: ["json"],
+            denormalizationContext: ['groups' => 'work-schedule:update'],
             security: "
                 is_granted('ROLE_ADMIN')
                 or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
-            inputFormats: [ "json" ],
-            denormalizationContext: ['groups' => 'work-schedule:update'],
+        ),
+        new GetCollection(
+            uriTemplate: '/employees/{id}/work_schedules',
+            uriVariables: [
+                'id' => new Link(
+                    fromProperty: 'workSchedules',
+                    fromClass: Employee::class,
+                ),
+            ],
+            security: "is_granted('ROLE_ADMIN') or (is_granted('ROLE_COMPANY'))"
         ),
         new Delete(
             security: "
@@ -75,7 +90,7 @@ class WorkSchedule
 
     #[ORM\ManyToOne(inversedBy: 'workSchedules')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['work-schedule:create', 'establishment:read', 'employee:read' ])]
+    #[Groups(['work-schedule:create', 'establishment:read', 'employee:read'])]
     private ?Employee $employee = null;
 
     public function getId(): ?int

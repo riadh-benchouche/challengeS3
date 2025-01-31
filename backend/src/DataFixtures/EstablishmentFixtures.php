@@ -21,7 +21,7 @@ class EstablishmentFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = \Faker\Factory::create('fr_FR');
         for ($i = 1; $i < 11; $i++) {
-            $company = $this->getReference('company_' . $faker->numberBetween(1, 10));
+            $company = $this->getReference('company_' . $faker->numberBetween(1, 10), Company::class);
             $establishment = new Establishment();
             $establishment->setName($faker->company);
             $establishment->setAdress($faker->streetAddress);
@@ -34,6 +34,5 @@ class EstablishmentFixtures extends Fixture implements DependentFixtureInterface
             $manager->persist($establishment);
         }
         $manager->flush();
-
     }
 }

@@ -24,8 +24,8 @@ class RatingFixtures extends Fixture implements DependentFixtureInterface
 
         $faker = \Faker\Factory::create('fr_FR');
         for ($i = 1; $i < 11; $i++) {
-            $user = $this->getReference('user_' . $faker->numberBetween(1, 10));
-            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10));
+            $user = $this->getReference('user_' . $faker->numberBetween(1, 10), User::class);
+            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10), Employee::class);
             $rating = new Rating();
             $rating->setNote($faker->numberBetween(1, 5));
             $rating->setComment($faker->sentence(6, true));

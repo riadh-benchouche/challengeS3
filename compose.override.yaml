@@ -14,7 +14,7 @@ services:
     tty: true
 
   frontend:
-    image: node:20-alpine
+    image: node:latest
     platform: linux/amd64
     working_dir: /app
     volumes:

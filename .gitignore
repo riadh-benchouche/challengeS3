@@ -2,7 +2,8 @@
 backend/api/vendor
 backend/.env
 frontend/package-lock.json
-backend/public/uploads
+backend/public/uploads/*
+backend/var/cache
 
 ###> symfony/framework-bundle ###
 backend/api/.env.local

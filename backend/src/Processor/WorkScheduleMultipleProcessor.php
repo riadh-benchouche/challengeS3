@@ -5,11 +5,11 @@ namespace App\Processor;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Dto\WorkScheduleMultipleDto;
+use App\Entity\Company;
 use App\Entity\WorkSchedule;
 use App\Repository\EmployeeRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Security\Core\Security;
-
+use Symfony\Bundle\SecurityBundle\Security;
 class WorkScheduleMultipleProcessor implements ProcessorInterface
 {
     private EntityManagerInterface $entityManager;
@@ -27,7 +27,7 @@ class WorkScheduleMultipleProcessor implements ProcessorInterface
     {
         $user = $this->security->getUser();
         if (!$user instanceof Company) {
-            throw new \LogicException('User is not authenticated.');
+            throw new LogicException('User is not authenticated.');
         }
 
         return $user->getId();

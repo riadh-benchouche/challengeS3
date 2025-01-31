@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Employee;
 use App\Entity\WorkSchedule;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -27,7 +28,7 @@ class WorkScheduleFixtures extends Fixture implements DependentFixtureInterface
             $workSchedule->setMorningEnd(12);
             $workSchedule->setAfternoonStart(13);
             $workSchedule->setAfternoonEnd(17);
-            $workSchedule->setEmployee($this->getReference('employee_' . $faker->numberBetween(1, 10)));
+            $workSchedule->setEmployee($this->getReference('employee_' . $faker->numberBetween(1, 10), Employee::class));
             $manager->persist($workSchedule);
         }
 

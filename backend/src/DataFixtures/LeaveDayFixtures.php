@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Employee;
 use App\Entity\LeaveDay;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
@@ -21,7 +22,7 @@ class LeaveDayFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = \Faker\Factory::create('fr_FR');
         for ($i = 1; $i < 101; $i++) {
-            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10));
+            $employee = $this->getReference('employee_' . $faker->numberBetween(1, 10), Employee::class);
 
             $leaveDay = new LeaveDay();
             $leaveDay->setDayOff($faker->dateTimeBetween('-1 years', 'now'));

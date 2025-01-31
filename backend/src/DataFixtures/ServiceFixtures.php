@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Establishment;
 use App\Entity\Service;
 use App\DataFixtures\EstablishmentFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -21,7 +22,7 @@ class ServiceFixtures extends Fixture implements DependentFixtureInterface
     {
         $faker = \Faker\Factory::create('fr_FR');
         for ($i = 1; $i < 11; $i++) {
-            $establishment = $this->getReference('establishment_' . $faker->numberBetween(1, 10));
+            $establishment = $this->getReference('establishment_' . $faker->numberBetween(1, 10), Establishment::class);
             $service = new Service();
             $service->setName($faker->word);
             $service->setDescription($faker->sentence(6, true));
