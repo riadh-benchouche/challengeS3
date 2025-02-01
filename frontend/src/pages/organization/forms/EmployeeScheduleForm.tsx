@@ -1,8 +1,9 @@
-import Input from "@/components/Input.tsx";
-import React, {useEffect, useState} from "react";
-import Button from "@/components/Button.tsx";
-import axiosInstance from "@/utils/axiosInstance.ts";
-import {Employee} from "@/types/employe.ts";
+import React, {useEffect, useState} from 'react';
+import axiosInstance from "@/utils/axiosInstance";
+import {Employee} from "@/types/employe";
+import Button from "@/components/Button";
+import Input from "@/components/Input";
+import {TrashIcon} from "@heroicons/react/24/outline";
 import {toast} from "react-toastify";
 
 interface DaySchedule {
@@ -52,12 +53,55 @@ const initialWorkHours: WorkHours = {
     Friday: {works: false, morningStart: '', morningEnd: '', afternoonStart: '', afternoonEnd: '', id: null},
 };
 
+interface ModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    day: string;
+}
+
+const DeleteModal = ({isOpen, onClose, onConfirm, day}: ModalProps) => {
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 className="text-lg font-medium mb-4">Confirmer la suppression</h3>
+                <p className="text-gray-500 mb-6">
+                    Êtes-vous sûr de vouloir supprimer les horaires du {day} ?
+                    Cette action est irréversible.
+                </p>
+                <div className="flex justify-end space-x-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onConfirm}
+                        className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                    >
+                        Supprimer
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function EmployeeScheduleForm({setClose, employee}: {
-    setClose: () => void
-    employee?: Employee
+    setClose: () => void;
+    employee?: Employee;
 }) {
     const [workHours, setWorkHours] = useState<WorkHours>(initialWorkHours);
     const [isLoading, setIsLoading] = useState(false);
+    const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; day: string | null }>({
+        isOpen: false,
+        day: null
+    });
 
     useEffect(() => {
         if (employee?.id) {
@@ -68,17 +112,15 @@ export default function EmployeeScheduleForm({setClose, employee}: {
 
                     schedules.forEach((schedule: WorkSchedule) => {
                         const dayName = DAYS_MAP[schedule.workDay];
-                        if (dayName) {
-                            if ("id" in schedule) {
-                                updatedWorkHours[dayName] = {
-                                    works: true,
-                                    morningStart: schedule.morningStart,
-                                    morningEnd: schedule.morningEnd,
-                                    afternoonStart: schedule.afternoonStart,
-                                    afternoonEnd: schedule.afternoonEnd,
-                                    id: schedule?.id || null
-                                };
-                            }
+                        if (dayName && 'id' in schedule) {
+                            updatedWorkHours[dayName] = {
+                                works: true,
+                                morningStart: schedule.morningStart,
+                                morningEnd: schedule.morningEnd,
+                                afternoonStart: schedule.afternoonStart,
+                                afternoonEnd: schedule.afternoonEnd,
+                                id: schedule.id
+                            };
                         }
                     });
 
@@ -86,7 +128,7 @@ export default function EmployeeScheduleForm({setClose, employee}: {
                 })
                 .catch(error => {
                     console.error('Erreur lors de la récupération des horaires:', error);
-                    toast.error('Erreur lors de la récupération des horaires');
+                    toast.error('Impossible de récupérer les horaires');
                 });
         }
     }, [employee]);
@@ -94,7 +136,7 @@ export default function EmployeeScheduleForm({setClose, employee}: {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, value} = e.target;
         const [day, periodTime] = name.split('-');
-        setWorkHours((prev: WorkHours) => ({
+        setWorkHours((prev) => ({
             ...prev,
             [day]: {
                 ...prev[day],
@@ -103,18 +145,53 @@ export default function EmployeeScheduleForm({setClose, employee}: {
         }));
     };
 
-    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleCheckboxChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const {name, checked} = e.target;
         const day = name.split('-')[0];
-        setWorkHours((prev: WorkHours) => ({
+
+        if (!checked && workHours[day].id) {
+            setDeleteDialog({isOpen: true, day});
+            return;
+        }
+
+        updateDayStatus(day, checked);
+    };
+
+    const updateDayStatus = (day: string, works: boolean) => {
+        setWorkHours((prev) => ({
             ...prev,
             [day]: {
                 ...prev[day],
-                works: checked,
+                works,
+                ...(works ? {} : {
+                    morningStart: '',
+                    morningEnd: '',
+                    afternoonStart: '',
+                    afternoonEnd: ''
+                })
             },
         }));
     };
 
+    const handleDeleteConfirm = async () => {
+        if (!deleteDialog.day) return;
+
+        const day = deleteDialog.day;
+        const scheduleId = workHours[day].id;
+
+        if (scheduleId) {
+            try {
+                await axiosInstance.delete(`/api/work_schedules/${scheduleId}`);
+                updateDayStatus(day, false);
+                toast.success('Horaire supprimé avec succès');
+            } catch (error) {
+                console.error(error);
+                toast.error('Impossible de supprimer l\'horaire');
+            }
+        }
+
+        setDeleteDialog({isOpen: false, day: null});
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -122,11 +199,10 @@ export default function EmployeeScheduleForm({setClose, employee}: {
 
         try {
             const workSchedules = Object.entries(workHours)
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 .map(([_, dayData], index) => {
                     if (!dayData.works) return null;
 
-                    // Validation des champs requis
                     if (!dayData.morningStart || !dayData.morningEnd ||
                         !dayData.afternoonStart || !dayData.afternoonEnd) {
                         return null;
@@ -142,7 +218,6 @@ export default function EmployeeScheduleForm({setClose, employee}: {
                     };
 
                     if (dayData.id) {
-                        // Pour les mises à jour
                         return {
                             ...baseSchedule,
                             id: dayData.id
@@ -156,13 +231,11 @@ export default function EmployeeScheduleForm({setClose, employee}: {
                     Object.values(schedule).every(value => value !== undefined && value !== '')
                 );
 
-            // Si aucun horaire valide n'est trouvé, ne pas envoyer la requête
             if (workSchedules.length === 0) {
                 toast.error('Veuillez remplir au moins un horaire de travail');
                 return;
             }
 
-            // Gestion des mises à jour et des nouvelles entrées
             const updates = workSchedules.filter((schedule): schedule is ExistingWorkSchedule => 'id' in schedule);
             const newEntries = workSchedules.filter((schedule): schedule is NewWorkSchedule => !('id' in schedule));
 
@@ -197,11 +270,12 @@ export default function EmployeeScheduleForm({setClose, employee}: {
             }
         } catch (error) {
             console.error('Erreur lors de l\'enregistrement des horaires:', error);
-            toast.error('Erreur lors de l\'enregistrement des horaires');
+            toast.error('Impossible d\'enregistrer les horaires');
         } finally {
             setIsLoading(false);
         }
     };
+
 
     return (
         <form className="flex h-full flex-col divide-y divide-gray-200 bg-white shadow-xl"
@@ -216,60 +290,87 @@ export default function EmployeeScheduleForm({setClose, employee}: {
                                         ? 'Modifier les horaires'
                                         : 'Ajouter les horaires'}
                                 </h3>
-                                <div>
+                                <div className="space-y-4">
                                     {(Object.keys(workHours) as Array<keyof WorkHours>).map(day => (
-                                        <div className="py-1" key={day}>
-                                            <label className="block text-sm font-medium leading-6 text-gray-900">
-                                                {day}
-                                            </label>
-                                            <div className="flex items-center space-x-4 mt-2">
-                                                <input
-                                                    type="checkbox"
-                                                    name={`${day}-works`}
-                                                    checked={workHours[day]?.works || false}
-                                                    onChange={handleCheckboxChange}
-                                                    className="h-4 w-4 text-primary-600 border-gray-300 rounded"
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    name={`${day}-morningStart`}
-                                                    disabled={!workHours[day]?.works}
-                                                    placeholder="8:00"
-                                                    min={8}
-                                                    max={9}
-                                                    value={workHours[day]?.morningStart || ''}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    name={`${day}-morningEnd`}
-                                                    disabled={!workHours[day]?.works}
-                                                    placeholder="12:00"
-                                                    min={12}
-                                                    max={13}
-                                                    value={workHours[day]?.morningEnd || ''}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    name={`${day}-afternoonStart`}
-                                                    disabled={!workHours[day]?.works}
-                                                    placeholder="14:00"
-                                                    min={14}
-                                                    max={15}
-                                                    value={workHours[day]?.afternoonStart || ''}
-                                                    onChange={handleInputChange}
-                                                />
-                                                <Input
-                                                    type="number"
-                                                    name={`${day}-afternoonEnd`}
-                                                    disabled={!workHours[day]?.works}
-                                                    placeholder="18:00"
-                                                    min={18}
-                                                    max={19}
-                                                    value={workHours[day]?.afternoonEnd || ''}
-                                                    onChange={handleInputChange}
-                                                />
+                                        <div className="p-4 rounded-lg border border-gray-200 bg-gray-50" key={day}>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center space-x-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        name={`${day}-works`}
+                                                        checked={workHours[day]?.works || false}
+                                                        onChange={handleCheckboxChange}
+                                                        className="h-4 w-4 text-primary-600 border-gray-300 rounded"
+                                                    />
+                                                    <label className="text-sm font-medium text-gray-900">
+                                                        {day}
+                                                    </label>
+                                                </div>
+                                                {workHours[day]?.id && (
+                                                    <button
+                                                        type="button"
+                                                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                                        // @ts-expect-error
+                                                        onClick={() => setDeleteDialog({isOpen: true, day})}
+                                                        className="text-red-500 hover:text-red-700"
+                                                    >
+                                                        <TrashIcon className="h-4 w-4"/>
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <p className="text-sm text-gray-500">Matin</p>
+                                                    <div className="flex space-x-2">
+                                                        <Input
+                                                            type="number"
+                                                            name={`${day}-morningStart`}
+                                                            disabled={!workHours[day]?.works}
+                                                            placeholder="8:00"
+                                                            min={8}
+                                                            max={9}
+                                                            value={workHours[day]?.morningStart || ''}
+                                                            onChange={handleInputChange}
+                                                        />
+                                                        <Input
+                                                            type="number"
+                                                            name={`${day}-morningEnd`}
+                                                            disabled={!workHours[day]?.works}
+                                                            placeholder="12:00"
+                                                            min={12}
+                                                            max={13}
+                                                            value={workHours[day]?.morningEnd || ''}
+                                                            onChange={handleInputChange}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <p className="text-sm text-gray-500">Après-midi</p>
+                                                    <div className="flex space-x-2">
+                                                        <Input
+                                                            type="number"
+                                                            name={`${day}-afternoonStart`}
+                                                            disabled={!workHours[day]?.works}
+                                                            placeholder="14:00"
+                                                            min={14}
+                                                            max={15}
+                                                            value={workHours[day]?.afternoonStart || ''}
+                                                            onChange={handleInputChange}
+                                                        />
+                                                        <Input
+                                                            type="number"
+                                                            name={`${day}-afternoonEnd`}
+                                                            disabled={!workHours[day]?.works}
+                                                            placeholder="18:00"
+                                                            min={18}
+                                                            max={19}
+                                                            value={workHours[day]?.afternoonEnd || ''}
+                                                            onChange={handleInputChange}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
@@ -288,6 +389,13 @@ export default function EmployeeScheduleForm({setClose, employee}: {
                     </div>
                 </div>
             </div>
+
+            <DeleteModal
+                isOpen={deleteDialog.isOpen}
+                onClose={() => setDeleteDialog({isOpen: false, day: null})}
+                onConfirm={handleDeleteConfirm}
+                day={deleteDialog.day || ''}
+            />
         </form>
     );
 }
