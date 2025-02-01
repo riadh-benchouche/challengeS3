@@ -22,6 +22,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId()))
+                or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
         ),
         new GetCollection(),
@@ -31,6 +32,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
             securityPostDenormalize: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
+                or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
         ),
         new Patch(
@@ -40,17 +42,30 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
             security: "
                 is_granted('ROLE_ADMIN')
                 or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
         ),
         new Delete(
             security: "
                 is_granted('ROLE_ADMIN') 
                 or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
+                or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
         )
     ],
-    normalizationContext: [ 'groups' => ['appointment:read']]
+    normalizationContext: [ 'groups' => ['appointment:read']],
+    security: "
+        is_granted('ROLE_ADMIN')
+        or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
+        or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
+    ",
+    securityPostDenormalize: "
+        is_granted('ROLE_ADMIN') 
+        or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
+        or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
+    "
 )]
+
 #[ApiFilter(SearchFilter::class, properties: ['bookedBy'=> 'exact'])]
 class Appointment
 {
@@ -76,19 +91,20 @@ class Appointment
     #[Groups(['establishment:read', 'employee:read', 'appointment:read', 'appointment:response', 'appointment:create', 'appointment:update'])]
     private ?\DateTimeInterface $reservationDate = null;
 
+
     #[ORM\ManyToOne(inversedBy: 'appointments')]
     #[Groups(['appointment:read', 'appointment:response', 'appointment:create'])]
     #[ApiProperty(
         security:"
         is_granted('ROLE_ADMIN')
         or (is_granted('ROLE_CLIENT') and (object == null or (object.getBookedBy() != null and object.getBookedBy().getId() == user.getId())))
-        or (is_granted('ROLE_COMPANY') and object.getService().getEmployee().getEstablishment().getCompany().getId() == user.getId())
-        ",
+        or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
+    ",
         securityPostDenormalize: "
-            is_granted('ROLE_ADMIN') 
-            or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
-            or (is_granted('ROLE_COMPANY') and object.getService().getEmployee().getEstablishment().getCompany().getId() == user.getId())
-        ",
+        is_granted('ROLE_ADMIN') 
+        or (is_granted('ROLE_CLIENT') and object.getBookedBy().getId() == user.getId())
+        or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
+    "
     )]
     private ?User $bookedBy = null;
 
