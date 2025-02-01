@@ -6,17 +6,18 @@ import axiosInstance from "@/utils/axiosInstance.ts";
 export default function Establishment() {
     const [establishment, setEstablishment] = useState<EstablishmentType | null>(null);
     const location = useLocation();
-    const id = location.pathname.split('/').pop();
+    const establishmentId = location.pathname.split("/").pop();
+    const companyId = location.pathname.split("/")[2];
 
     useEffect(() => {
-        axiosInstance.get('/api/establishments/' + id)
+        axiosInstance.get('/api/establishments/' + establishmentId)
             .then((res) => {
                 setEstablishment(res.data);
             })
             .catch((err) => {
                 console.error(err);
             });
-    }, [id]);
+    }, [establishmentId]);
 
     return (
         <>
@@ -47,7 +48,7 @@ export default function Establishment() {
                                 </div>
                             </div>
                             <div className="mt-10 flex">
-                                <a href="/companies/1/establishments/1/book"
+                                <a href={`/companies/${companyId}/establishments/${establishmentId}/book`}
                                    className="text-base font-semibold leading-7 text-primary-600">
                                     Prennez rendez-vous avec nous <span aria-hidden="true">&rarr;</span>
                                 </a>
@@ -74,48 +75,39 @@ export default function Establishment() {
             {establishment?.employees && establishment?.employees?.length > 0 ? (
                 <div className="pb-20 mx-auto grid max-w-7xl gap-x-8 gap-y-20 px-6 lg:px-8 xl:grid-cols-3">
                     <div className="max-w-2xl col-span-1">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Notre équipe</h2>
-                        <p className="mt-6 text-lg leading-8 text-gray-600">
-                            Notre équipe est composée d'experts en informatique qui sont prêts à vous aider à résoudre
-                            vos problèmes informatiques.
+                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Nos Services</h2>
+                        <p className="mt-4 text-lg leading-8 text-gray-600">
+                            Voici les services que nous proposons.
                         </p>
                     </div>
                     <ul
                         role="list"
                         className="divide-y divide-gray-100 overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl col-span-2"
                     >
-                        {establishment?.employees.map((person) => (
-                            <li key={person.email}
+                        {establishment?.services.map((service) => (
+                            <li key={service.name}
                                 className="relative flex justify-between gap-x-6 px-4 py-5 hover:bg-gray-50 sm:px-6">
                                 <div className="flex min-w-0 gap-x-4">
-                                    <img className="h-12 w-12 flex-none rounded-full bg-gray-50" src={person.image}
-                                         alt=""/>
                                     <div className="min-w-0 flex-auto">
                                         <p className="text-sm font-semibold leading-6 text-gray-900">
                                             <span className="absolute inset-x-0 -top-px bottom-0"/>
-                                            {person.firstName} {person.lastName}
+                                            {service.name}
                                         </p>
-                                        <p className="mt-1 flex text-xs leading-5 text-gray-500">
-                                            <a href={`mailto:${person.email}`}
-                                               className="relative truncate hover:underline">
-                                                {person.email}
-                                            </a>
+                                        <p className="mt-1 flex text-xs leading-5 text-gray-500 truncate-m line-clamp-1">
+                                            {service.description}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex shrink-0 items-center gap-x-4">
                                     <p className="text-sm font-semibold leading-6 text-gray-900">
-                                        {person.services.length} service(s)
+                                        {service.price} €
                                     </p>
-                                    <div className="hidden sm:flex sm:flex-col sm:items-end space-y-1">
-                                        {person.services.map((service) => (
-                                            <span
-                                                key={service.id}
-                                                className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                                                {service.name}
-                                            </span>
-                                        ))}
-                                    </div>
+                                    <p className="text-sm font-semibold leading-6 text-gray-900">
+                                        {service.duration} min
+                                    </p>
+                                    <p className="text-sm font-semibold leading-6 text-gray-900">
+                                        {service.employees.length} employés
+                                    </p>
                                 </div>
                             </li>
                         ))}

@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react'
-import {Dialog, DialogPanel} from '@headlessui/react'
+import {Dialog, DialogPanel, Menu, MenuButton, MenuItem, MenuItems, Transition} from '@headlessui/react'
 import {Bars3Icon, XMarkIcon, UserIcon} from '@heroicons/react/24/outline'
 
 const footerNavigation = {
@@ -13,7 +13,6 @@ const footerNavigation = {
         {name: 'Pricing', href: '#'},
         {name: 'Documentation', href: '#'},
         {name: 'Guides', href: '#'},
-        {name: 'API Status', href: '#'},
     ],
     company: [
         {name: 'About', href: '#'},
@@ -27,6 +26,15 @@ const footerNavigation = {
         {name: 'Privacy', href: '#'},
         {name: 'Terms', href: '#'},
     ],
+}
+
+function classNames(...classes: string[]) {
+    return classes.filter(Boolean).join(' ')
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "/login";
 }
 
 export default function GuestLayout({children}: { children: React.ReactNode }) {
@@ -82,12 +90,43 @@ export default function GuestLayout({children}: { children: React.ReactNode }) {
                     </div>
                     <div className="hidden lg:flex lg:flex-1 lg:justify-end">
                         {Object.values(roles).includes("ROLE_CLIENT") && (
-                            <a
-                                href="/profile"
-                                className="text-sm font-semibold leading-6 text-gray-900"
-                            >
-                                <UserIcon className="h-6 w-6 mr-2" aria-hidden="true"/>
-                            </a>
+                            <div className="flex flex-1 justify-end">
+                                <div className="flex items-center gap-x-4 lg:gap-x-6">
+                                    <Menu as="div" className="relative">
+                                        <MenuButton className="-m-1.5 flex items-center p-1.5">
+                                            <span className="sr-only">Open user menu</span>
+                                            <span className="lg:flex lg:items-center">
+                                            <UserIcon className="ml-2 h-7 w-7 text-gray-400" aria-hidden="true"/>
+                                        </span>
+                                        </MenuButton>
+                                        <Transition
+                                            enter="transition ease-out duration-100"
+                                            enterFrom="transform opacity-0 scale-95"
+                                            enterTo="transform opacity-100 scale-100"
+                                            leave="transition ease-in duration-75"
+                                            leaveFrom="transform opacity-100 scale-100"
+                                            leaveTo="transform opacity-0 scale-95"
+                                        >
+                                            <MenuItems
+                                                className="absolute right-0 z-10 mt-2.5 w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none">
+                                                <MenuItem>
+                                                    {({focus}) => (
+                                                        <button
+                                                            onClick={logout}
+                                                            className={classNames(
+                                                                focus ? 'bg-gray-50' : '',
+                                                                'block px-3 py-1 text-sm leading-6 text-gray-900'
+                                                            )}
+                                                        >
+                                                            Déconnexion
+                                                        </button>
+                                                    )}
+                                                </MenuItem>
+                                            </MenuItems>
+                                        </Transition>
+                                    </Menu>
+                                </div>
+                            </div>
                         )}
                         {!Object.values(roles).includes("ROLE_CLIENT") && (
                             <a

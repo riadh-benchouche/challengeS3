@@ -10,27 +10,42 @@ export default function RegisterCompany() {
     const [error, setError] = useState('')
     const navigate = useNavigate()
     const [name, setName] = useState<string>('')
-    const [kbis, setKbis] = useState<string>('')
+    const [email, setEmail] = useState('')
+    const [plainPassword, setPassword] = useState('')
     const [kbisFile, setKbisFile] = useState<File | null>(null)
     const changeFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             setKbisFile(e.target.files[0])
         }
     }
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData()
         formData.append('name', name)
-        formData.append('kbis', kbis)
+        formData.append('email', email)
+        formData.append('plainPassword', plainPassword)
         if (kbisFile) {
             formData.append('kbisFile', kbisFile)
         }
-        axiosInstance.post('/api/companies', formData).then(() => {
+
+        try {
+            const url = `/api/companies/register`;
+            const method = 'post';
+
+            await axiosInstance({
+                method,
+                url,
+                data: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
             navigate('/login')
-        }).catch(e => {
-            console.error(e)
-            setError('Erreur lors de la création du compte')
-        })
+        } catch (err: any) {
+            setError(err.response.data.message)
+            console.log(err);
+        }
     }
 
     return (
@@ -79,13 +94,19 @@ export default function RegisterCompany() {
                             onChange={(e) => setName(e.target.value)}
                             required={true}
                         />
-                        <Input
-                            label="KBIS"
-                            type="text"
-                            placeholder="2019B01234"
-                            value={kbis}
-                            onChange={(e) => setKbis(e.target.value)}
-                            required={true}
+
+                        <Input label="Email"
+                               type="email"
+                               placeholder="exemple@exemple.com"
+                               value={email}
+                               onChange={(e) => setEmail(e.target.value)}
+                        />
+
+                        <Input label="Mot de passe"
+                               type="password"
+                               placeholder="********"
+                               value={plainPassword}
+                               onChange={(e) => setPassword(e.target.value)}
                         />
                         <div className="col-span-full">
                             <label htmlFor="cover-photo"

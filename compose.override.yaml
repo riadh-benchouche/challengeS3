@@ -1,0 +1,36 @@
+# Development environment override
+services:
+  php:
+    build:
+      context: ./backend
+      target: frankenphp_dev
+    volumes:
+      - ./backend:/app
+      - /app/var
+      - ./backend/frankenphp/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./backend/frankenphp/conf.d/app.dev.ini:/usr/local/etc/php/conf.d/app.dev.ini:ro
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    tty: true
+
+  frontend:
+    image: node:latest
+    platform: linux/amd64
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 3000"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:80
+    depends_on:
+      - php
+
+  database:
+    ports:
+      - target: 5432
+        published: 5432
+        protocol: tcp

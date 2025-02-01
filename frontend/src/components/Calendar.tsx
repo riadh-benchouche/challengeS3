@@ -1,128 +1,384 @@
 import {useState} from 'react';
-import {addDays, startOfWeek, format, isBefore} from 'date-fns';
+import {
+    addDays,
+    addHours,
+    startOfWeek,
+    startOfMonth,
+    endOfMonth,
+    format,
+    isBefore,
+    isEqual,
+    setHours,
+    setMinutes,
+    getDay,
+    isAfter,
+    eachDayOfInterval,
+    isSameMonth,
+    isToday,
+    addMonths,
+    isSameDay
+} from 'date-fns';
 import {fr} from 'date-fns/locale';
-import {ChevronLeftIcon, ChevronRightIcon} from '@heroicons/react/16/solid';
+import {
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    CalendarDaysIcon,
+    ViewColumnsIcon,
+} from '@heroicons/react/16/solid';
+import {Employee, Service} from "@/types/employe.ts";
 
-export default function Calendar({date, setDate}: { date: Date | null, setDate: (date: Date) => void }) {
-    const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), {weekStartsOn: 1}));
+type ViewType = 'month' | 'week' | 'day';
 
-    const nextWeek = () => {
-        setCurrentWeekStart(addDays(currentWeekStart, 7));
+const JS_TO_DB_DAY = {
+    0: 6, 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5,
+};
+
+const ViewSelector = ({view, setView}: { view: ViewType, setView: (view: ViewType) => void }) => (
+    <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
+        <button
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('month')
+            }}
+            type="button"
+            className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
+                view === 'month'
+                    ? 'bg-white text-primary-600 shadow'
+                    : 'text-gray-600 hover:text-gray-900'
+            }`}
+        >
+            <CalendarDaysIcon className="h-4 w-4 mr-1"/>
+            Mois
+        </button>
+        <button
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('week')
+            }}
+            type="button"
+            className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
+                view === 'week'
+                    ? 'bg-white text-primary-600 shadow'
+                    : 'text-gray-600 hover:text-gray-900'
+            }`}
+        >
+            <ViewColumnsIcon className="h-4 w-4 mr-1"/>
+            Semaine
+        </button>
+        <button
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('day')
+            }}
+            type="button"
+            className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
+                view === 'day'
+                    ? 'bg-white text-primary-600 shadow'
+                    : 'text-gray-600 hover:text-gray-900'
+            }`}
+        >
+            <ViewColumnsIcon className="h-4 w-4 mr-1"/>
+            Jour
+        </button>
+    </div>
+);
+
+export default function Calendar({date, setDate, employee, service}: {
+    date: Date | null,
+    setDate: (date: Date) => void,
+    employee: Employee,
+    service: Service
+}) {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [view, setView] = useState<ViewType>('week');
+
+    const generateSlots = (day: Date, workSchedule: any) => {
+        if (!workSchedule) return [];
+
+        const slots: Date[] = [];
+        const {morningStart, morningEnd, afternoonStart, afternoonEnd} = workSchedule;
+        const totalDuration = service.duration;
+
+        // Fonction helper pour générer les slots sur une période
+        const generateSlotsForPeriod = (startHour: number, endHour: number) => {
+            let currentHour = startHour;
+            while (currentHour + totalDuration <= endHour) {
+                slots.push(setHours(setMinutes(day, 0), currentHour));
+                currentHour += totalDuration;
+            }
+        };
+
+        generateSlotsForPeriod(morningStart, morningEnd);
+        generateSlotsForPeriod(afternoonStart, afternoonEnd);
+
+        return slots;
     };
 
-    const prevWeek = () => {
-        setCurrentWeekStart(addDays(currentWeekStart, -7));
+    const getSlotEndTime = (slot: Date) => {
+        return addHours(slot, service.duration);
     };
 
-    const daysOfWeek = Array.from({length: 7}, (_, i) => addDays(currentWeekStart, i));
-    const now = new Date();
+    const isSlotDisabled = (slot: Date) => {
+        if (isBefore(slot, new Date())) return true;
 
-    const isSlotDisabled = (day: Date, _startHour: number, endHour: number) => {
-        const currentHour = now.getHours();
-        return isBefore(day, now) || (format(day, 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd') && currentHour >= endHour);
+        const slotEnd = addDays(slot, service.duration / 24);
+        return employee.appointments.some(appointment => {
+            const appointmentDate = new Date(appointment.reservationDate);
+            const appointmentStart = setHours(setMinutes(appointmentDate, 0), appointment.beginning);
+            const appointmentEnd = addDays(appointmentStart, appointment.duration / 24);
+
+            return (
+                isEqual(slot, appointmentStart) ||
+                isEqual(slotEnd, appointmentEnd) ||
+                (isBefore(slot, appointmentEnd) && isAfter(slotEnd, appointmentStart))
+            );
+        });
     };
 
-    const handleSlotClick = (day: Date, hour: number) => {
-        const selectedDate = new Date(day);
-        selectedDate.setHours(hour);
-        setDate(selectedDate);
+    const handleSlotClick = (e: React.MouseEvent<HTMLButtonElement>, slot: Date) => {
+        e.preventDefault();
+        setDate(slot);
     };
 
-    const isSelectedDate = (day: Date, hour: number) => {
-        return date && format(day, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd') && date.getHours() === hour;
+    const getWorkScheduleForDay = (day: Date) => {
+        const jsDay = getDay(day);
+        const dbDay = JS_TO_DB_DAY[jsDay as keyof typeof JS_TO_DB_DAY];
+        return employee.workSchedules.find(
+            (schedule: any) => schedule.workDay === dbDay
+        );
+    };
+
+    const renderTimeSlots = (day: Date) => {
+        const workSchedule = getWorkScheduleForDay(day);
+        const slots = generateSlots(day, workSchedule);
+
+        if (!workSchedule || [0, 6].includes(getDay(day))) {
+            return (
+                <div className="text-sm text-gray-500 text-center py-2">
+                    Non disponible
+                </div>
+            );
+        }
+
+        return (
+            <div className="grid grid-cols-1 gap-2">
+                {slots.map((slot, slotIndex) => {
+                    const disabled = isSlotDisabled(slot);
+                    const endTime = getSlotEndTime(slot);
+
+                    return (
+                        <button
+                            key={slotIndex}
+                            onClick={(e) => !disabled && handleSlotClick(e, slot)}
+                            disabled={disabled}
+                            type="button"
+                            className={`
+                                px-3 py-2 rounded-md font-medium
+                                transition-colors duration-200 text-left
+                                ${
+                                disabled
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                                    // @ts-expect-error
+                                    : isEqual(slot, date)
+                                        ? 'bg-primary-600 text-white ring-2 ring-primary-600 ring-offset-2'
+                                        : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                            }
+                            `}
+                        >
+                            <div className="text-sm">
+                                {format(slot, 'HH:mm')} - {format(endTime, 'HH:mm')}
+                            </div>
+                            <div className="text-xs opacity-75 mt-0.5">
+                                {service.duration}h
+                            </div>
+                        </button>
+                    );
+                })}
+            </div>
+        );
+    };
+
+    const renderDayView = () => (
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                <div className="font-medium text-gray-900">
+                    {format(currentDate, 'EEEE d MMMM', {locale: fr})}
+                </div>
+            </div>
+            <div className="p-4">
+                {renderTimeSlots(currentDate)}
+            </div>
+        </div>
+    );
+
+    const renderWeekView = () => {
+        const weekStart = startOfWeek(currentDate, {weekStartsOn: 1});
+        const days = Array.from({length: 7}, (_, i) => addDays(weekStart, i));
+
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {days.map((day, index) => (
+                    <div
+                        key={index}
+                        className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:border-primary-100 transition-colors"
+                    >
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                            <div className="font-medium text-gray-900">
+                                {format(day, 'EEEE d', {locale: fr})}
+                            </div>
+                        </div>
+                        <div className="p-4">
+                            {renderTimeSlots(day)}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
+    };
+
+    const renderMonthView = () => {
+        const monthStart = startOfMonth(currentDate);
+        const monthEnd = endOfMonth(currentDate);
+        const startDate = startOfWeek(monthStart, {weekStartsOn: 1});
+        const endDate = endOfMonth(monthEnd);
+        const days = eachDayOfInterval({start: startDate, end: endDate});
+
+        return (
+            <div>
+                <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+                    {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day) => (
+                        <div
+                            key={day}
+                            className="bg-gray-50 py-2 text-sm font-medium text-gray-500 text-center"
+                        >
+                            {day}
+                        </div>
+                    ))}
+                    {days.map((day) => {
+                        const workSchedule = getWorkScheduleForDay(day);
+                        const slots = generateSlots(day, workSchedule);
+                        const hasAvailableSlots = slots.some(slot => !isSlotDisabled(slot));
+                        const isSelected = date ? isSameDay(day, date) : false;
+                        const isSameMonthDay = isSameMonth(day, currentDate);
+
+                        return (
+                            <div
+                                key={day.toString()}
+                                className={`
+                                    min-h-[100px] bg-white p-2 relative
+                                    ${!isSameMonthDay ? 'bg-gray-50' : ''}
+                                    ${isToday(day) ? 'border-2 border-primary-500' : ''}
+                                `}
+                            >
+                                <div className={`
+                                    text-sm font-medium
+                                    ${!isSameMonthDay ? 'text-gray-400' : 'text-gray-900'}
+                                    ${isSelected ? 'text-primary-600' : ''}
+                                `}>
+                                    {format(day, 'd')}
+                                </div>
+                                {isSameMonthDay && hasAvailableSlots && (
+                                    <button
+                                        onClick={() => {
+                                            setCurrentDate(day);
+                                            setView('day')
+                                        }}
+                                        className="mt-1 w-full text-left"
+                                    >
+                                        <div className="text-xs text-primary-600 font-medium">
+                                            {slots.length} créneaux disponibles
+                                        </div>
+                                        <div className="text-xs text-gray-500">
+                                            Cliquer pour voir
+                                        </div>
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    const navigate = (direction: 'prev' | 'next') => {
+        const amount = direction === 'prev' ? -1 : 1;
+        switch (view) {
+            case 'month':
+                setCurrentDate(addMonths(currentDate, amount));
+                break;
+            case 'week':
+                setCurrentDate(addDays(currentDate, amount * 7));
+                break;
+            case 'day':
+                setCurrentDate(addDays(currentDate, amount));
+                break;
+        }
     };
 
     return (
-        <div className="max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Calendrier de Réservation</h2>
-                <div className="relative flex items-center rounded-md bg-white shadow-sm md:items-stretch">
+        <div className="mx-auto bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+                <div>
+                    <div className="flex items-center space-x-4">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            {view === 'month' && format(currentDate, 'MMMM yyyy', {locale: fr})}
+                            {view === 'week' && `Semaine du ${format(startOfWeek(currentDate, {weekStartsOn: 1}), 'dd MMMM', {locale: fr})}`}
+                            {view === 'day' && format(currentDate, 'EEEE d MMMM', {locale: fr})}
+                        </h2>
+                        <ViewSelector view={view} setView={setView}/>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Durée du service : {service.duration}h
+                    </p>
+                </div>
+                <div className="flex rounded-lg border border-gray-200 divide-x">
                     <button
                         type="button"
-                        onClick={prevWeek}
-                        className="flex h-9 w-12 items-center justify-center rounded-l-md border-y border-l border-gray-300 pr-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pr-0 md:hover:bg-gray-50"
+                        onClick={() => navigate('prev')}
+                        className="p-2 hover:bg-gray-50 transition-colors"
                     >
-                        <span className="sr-only">Semaine précédente</span>
-                        <ChevronLeftIcon className="h-5 w-5" aria-hidden="true"/>
+                        <ChevronLeftIcon className="h-5 w-5 text-gray-600"/>
                     </button>
                     <button
                         type="button"
-                        onClick={nextWeek}
-                        className="flex h-9 w-12 items-center justify-center rounded-r-md border-y border-r border-gray-300 pl-1 text-gray-400 hover:text-gray-500 focus:relative md:w-9 md:pl-0 md:hover:bg-gray-50"
+                        onClick={() => navigate('next')}
+                        className="p-2 hover:bg-gray-50 transition-colors"
                     >
-                        <span className="sr-only">Semaine suivante</span>
-                        <ChevronRightIcon className="h-5 w-5" aria-hidden="true"/>
+                        <ChevronRightIcon className="h-5 w-5 text-gray-600"/>
                     </button>
                 </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {daysOfWeek.map((day, index) => {
-                    const isDayInPast = isBefore(day, now) && format(day, 'yyyy-MM-dd') !== format(now, 'yyyy-MM-dd');
-                    return (
-                        <div
-                            key={index}
-                            className={`border p-4 rounded-lg shadow-lg ${isDayInPast ? 'bg-gray-200' : 'bg-white'}`}
-                        >
-                            <div className={`text-base ${isDayInPast ? 'text-gray-500' : ''}`}>
-                                {format(day, 'eeee dd MMMM', {locale: fr})}
-                            </div>
-                            <div className="mt-4 flex flex-col space-y-2">
-                                <button
-                                    onClick={() => handleSlotClick(day, 8)}
-                                    type="button"
-                                    disabled={isSlotDisabled(day, 8, 10)}
-                                    className={`${
-                                        isSlotDisabled(day, 8, 10) ? 'bg-gray-400 cursor-not-allowed' :
-                                            isSelectedDate(day, 8) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
-                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
-                                >
-                                    8:00 - 10:00
-                                </button>
-                                <button
-                                    onClick={() => handleSlotClick(day, 10)}
-                                    type="button"
-                                    disabled={isSlotDisabled(day, 10, 12)}
-                                    className={`${
-                                        isSlotDisabled(day, 10, 12) ? 'bg-gray-400 cursor-not-allowed' :
-                                            isSelectedDate(day, 10) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
-                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
-                                >
-                                    10:00 - 12:00
-                                </button>
-                                <div className="relative">
-                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div className="w-full border-t border-gray-300"/>
-                                    </div>
-                                    <div className="relative flex justify-center">
-                                        <span className="bg-white px-2 text-sm text-gray-500">Pause</span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => handleSlotClick(day, 14)}
-                                    type="button"
-                                    disabled={isSlotDisabled(day, 14, 16)}
-                                    className={`${
-                                        isSlotDisabled(day, 14, 16) ? 'bg-gray-400 cursor-not-allowed' :
-                                            isSelectedDate(day, 14) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
-                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
-                                >
-                                    14:00 - 16:00
-                                </button>
-                                <button
-                                    onClick={() => handleSlotClick(day, 16)}
-                                    type="button"
-                                    disabled={isSlotDisabled(day, 16, 18)}
-                                    className={`${
-                                        isSlotDisabled(day, 16, 18) ? 'bg-gray-400 cursor-not-allowed' :
-                                            isSelectedDate(day, 16) ? 'bg-secondary-500' : 'bg-primary-500 hover:bg-primary-600'
-                                    } text-white px-3 py-2 rounded-md shadow transition duration-300`}
-                                >
-                                    16:00 - 18:00
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
+
+            <div className="p-4">
+                {view === 'month' && renderMonthView()}
+                {view === 'week' && renderWeekView()}
+                {view === 'day' && renderDayView()}
+            </div>
+
+            <div className="px-4 py-3 bg-gray-50 border-t flex items-center justify-end space-x-4 text-sm">
+                <div className="flex items-center">
+                    <div className="w-3 h-3 bg-primary-50 rounded-full border border-primary-200"></div>
+                    <span className="ml-2 text-gray-600">Disponible</span>
+                </div>
+                <div className="flex items-center">
+                    <div className="w-3 h-3 bg-primary-600 rounded-full"></div>
+                    <span className="ml-2 text-gray-600">Sélectionné</span>
+                </div>
+                <div className="flex items-center">
+                    <div className="w-3 h-3 bg-gray-100 rounded-full border border-gray-200"></div>
+                    <span className="ml-2 text-gray-600">Indisponible</span>
+                </div>
+                {view === 'month' && (
+                    <div className="flex items-center">
+                        <div className="w-3 h-3 border-2 border-primary-500 bg-white rounded-full"></div>
+                        <span className="ml-2 text-gray-600">Aujourd'hui</span>
+                    </div>
+                )}
             </div>
         </div>
     );

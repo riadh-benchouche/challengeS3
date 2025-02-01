@@ -75,7 +75,7 @@ export default function EstablishmentDetail() {
                           description="Ajoutez un nouvel emploi du temps">
                 <EmployeeScheduleForm
                     employee={selectedEmployee ? selectedEmployee : undefined}
-                    setClose={() => setOpenCreateEmployee(false)}/>
+                    setClose={() => setOpenCreateSchedule(false)}/>
             </SideBarModal>
             <div className="px-4 sm:px-6 lg:px-8">
                 <div

@@ -28,24 +28,38 @@ export default function CompanyForm({type = 'create', company, onClose}: {
         }
     }, [type, company])
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (type === 'create') {
             const formData = new FormData()
             formData.append('name', name)
             formData.append('email', email)
-            formData.append('password', password)
+            formData.append('plainPassword', password)
             formData.append('status', status ? 'ACTIVE' : 'PENDING')
             formData.append('image', image)
             if (kbisFile) {
-                formData.append('kbis', kbisFile)
+                formData.append('kbisFile', kbisFile)
             }
             console.log(formData)
-            axiosInstance.post('/api/companies', formData).then(() => {
-                onClose()
-            }).catch(err => {
-                console.log(err)
-            })
+
+            try {
+                const url = `/api/companies`;
+                const method ='post';
+        
+                const response = await axiosInstance({
+                    method,
+                    url,
+                    data: formData,
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+        
+                console.log(response.data);
+                onClose();
+            } catch (err) {
+                console.log(err);
+            }
         }
 
         if (type === 'edit') {
@@ -54,13 +68,12 @@ export default function CompanyForm({type = 'create', company, onClose}: {
             formData.append('email', email)
             formData.append('status', status ? 'ACTIVE' : 'PENDING')
             formData.append('image', image)
-            if (kbisFile) {
-                formData.append('kbis', kbisFile)
-            }
-            axiosInstance.patch(`/api/companies/${company?.id}`, formData).then(() => {
+
+            axiosInstance.patch(`/api/companies/${company?.id}`, formData).then((response) => {
+                console.log(response.data)
                 onClose()
-            }).catch(err => {
-                console.log(err)
+            }).catch((error) => {
+                console.log(error)
             })
         }
     }
@@ -135,7 +148,7 @@ export default function CompanyForm({type = 'create', company, onClose}: {
                                                     </label>
                                                     <p className="pl-1">{kbisFile ? 'Sélectionné' : 'Aucun fichier sélectionné'}</p>
                                                 </div>
-                                                <p className="text-xs leading-5 text-gray-600">{kbisFile ? 'Le fichier doit être au format PDF' : 'Le fichier doit être au format PDF'}</p>
+                                                <p className="text-xs leading-5 text-gray-600">{kbisFile ? 'Le fichier doit être au format JPG' : 'Le fichier doit être au format JPG'}</p>
                                             </div>
                                         </div>
                                     </div>

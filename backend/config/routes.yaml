@@ -1,0 +1,8 @@
+login:
+    path: /login
+    methods: ['POST']
+
+activate_account:
+    path: /activate/{id}/{token}
+    controller: App\Controller\ConfirmCompanyController::confirmRegistration
+
