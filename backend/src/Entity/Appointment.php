@@ -25,7 +25,9 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
                 or (is_granted('ROLE_COMPANY') and object.getEmployee().getEstablishment().getCompany().getId() == user.getId())
             ",
         ),
-        new GetCollection(),
+        new GetCollection(
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_CLIENT') or is_granted('ROLE_COMPANY')"
+        ),
         new Post(
             normalizationContext: ['groups' => 'appointment:response'],
             denormalizationContext: ['groups' => 'appointment:create'],
