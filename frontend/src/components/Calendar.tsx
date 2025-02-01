@@ -36,7 +36,12 @@ const JS_TO_DB_DAY = {
 const ViewSelector = ({view, setView}: { view: ViewType, setView: (view: ViewType) => void }) => (
     <div className="flex space-x-2 bg-gray-100 p-1 rounded-lg">
         <button
-            onClick={() => setView('month')}
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('month')
+            }}
+            type="button"
             className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
                 view === 'month'
                     ? 'bg-white text-primary-600 shadow'
@@ -47,7 +52,12 @@ const ViewSelector = ({view, setView}: { view: ViewType, setView: (view: ViewTyp
             Mois
         </button>
         <button
-            onClick={() => setView('week')}
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('week')
+            }}
+            type="button"
             className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
                 view === 'week'
                     ? 'bg-white text-primary-600 shadow'
@@ -58,7 +68,12 @@ const ViewSelector = ({view, setView}: { view: ViewType, setView: (view: ViewTyp
             Semaine
         </button>
         <button
-            onClick={() => setView('day')}
+            onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setView('day')
+            }}
+            type="button"
             className={`px-3 py-1.5 rounded text-sm font-medium flex items-center ${
                 view === 'day'
                     ? 'bg-white text-primary-600 shadow'
