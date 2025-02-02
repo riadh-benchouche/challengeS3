@@ -1,6 +1,5 @@
 import Input from "@/components/Input.tsx";
 import {useEffect, useState} from "react";
-import Switcher from "@/components/Switcher.tsx";
 import {PhotoIcon} from "@heroicons/react/16/solid";
 import {Company} from "@/types/company";
 import Button from "@/components/Button.tsx";
@@ -13,7 +12,7 @@ export default function CompanyForm({type = 'create', company, onClose}: {
 }) {
 
     const [name, setName] = useState<string>('')
-    const [status, setStatus] = useState<boolean>(false)
+    const [status, setStatus] = useState<string>('')
     const [email, setEmail] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [image, setImage] = useState<string>('')
@@ -22,7 +21,7 @@ export default function CompanyForm({type = 'create', company, onClose}: {
     useEffect(() => {
         if (type === 'edit' && company) {
             setName(company.name)
-            setStatus(company.status === 'ACTIVE')
+            setStatus(company.status)
             setEmail(company.email)
             setImage(company.image)
         }
@@ -35,17 +34,16 @@ export default function CompanyForm({type = 'create', company, onClose}: {
             formData.append('name', name)
             formData.append('email', email)
             formData.append('plainPassword', password)
-            formData.append('status', status ? 'ACTIVE' : 'PENDING')
+            formData.append('status', status)
             formData.append('image', image)
             if (kbisFile) {
                 formData.append('kbisFile', kbisFile)
             }
-            console.log(formData)
 
             try {
                 const url = `/api/companies`;
-                const method ='post';
-        
+                const method = 'post';
+
                 const response = await axiosInstance({
                     method,
                     url,
@@ -54,11 +52,11 @@ export default function CompanyForm({type = 'create', company, onClose}: {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
-        
+
                 console.log(response.data);
                 onClose();
             } catch (err) {
-                console.log(err);
+                console.error(err);
             }
         }
 
@@ -66,11 +64,10 @@ export default function CompanyForm({type = 'create', company, onClose}: {
             const formData = new FormData()
             formData.append('name', name)
             formData.append('email', email)
-            formData.append('status', status ? 'ACTIVE' : 'PENDING')
+            formData.append('status', status)
             formData.append('image', image)
 
-            axiosInstance.patch(`/api/companies/${company?.id}`, formData).then((response) => {
-                console.log(response.data)
+            axiosInstance.patch(`/api/companies/${company?.id}`, formData).then(() => {
                 onClose()
             }).catch((error) => {
                 console.log(error)
@@ -113,11 +110,16 @@ export default function CompanyForm({type = 'create', company, onClose}: {
                                             required={true}
                                         />
                                     )}
-                                    <Switcher
-                                        title="Statut"
-                                        description="Activez la société"
-                                        enabled={status}
-                                        setEnabled={setStatus}/>
+                                    <select
+                                        className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm rounded-md"
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    >
+                                        <option value="PENDING">En attente</option>
+                                        <option value="APPROVED">Approuvé</option>
+                                        <option value="REJECTED">Rejeté</option>
+                                        <option value="SUSPENDED">Suspendu</option>
+                                    </select>
                                     <Input
                                         label="Image"
                                         type="text"

@@ -1,5 +1,4 @@
 import {Dispatch, SetStateAction} from "react";
-import Switcher from "@/components/Switcher.tsx";
 import {ArrowDownTrayIcon} from "@heroicons/react/20/solid";
 
 export default function Table({
@@ -82,7 +81,9 @@ export default function Table({
                                                     </td>
                                                 ) : column.key === 'status' ? (
                                                     <td key={row[column.key]} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                                                        <Switcher enabled={row[column.key] === 'ACTIVE'} />
+                                                        <span className="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-gray-700 dark:text-gray-300">
+                                                            {row[column.key]}
+                                                        </span>
                                                     </td>
                                                 ) : column.key === 'kbis' ? (
                                                     <td key={row[column.key]} className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
